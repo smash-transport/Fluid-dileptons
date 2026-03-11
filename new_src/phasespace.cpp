@@ -3,8 +3,11 @@
 #include <cmath>
 #include <random>
 #include <vector>
+#include <array>
+#include <cassert>
 #include <algorithm>
 #include <sstream>
+#include <memory>
 
 std::mt19937 rng;
 std::uniform_real_distribution<double> uniform(0.0, 1.0);
@@ -16,6 +19,189 @@ constexpr int Nc = 3;
 constexpr double hbarc = 0.197327;
 constexpr double m_electron = 0.000511;
 constexpr double pi_cube = M_PI * M_PI * M_PI;
+
+// generic fixed-size vector class
+template<typename T, size_t N>
+class Vector {
+  public:
+    Vector() { data_.fill(T{}); }
+    Vector(std::initializer_list<T> list) {
+        assert(list.size() == N && "initializer list must have N elements");
+        std::copy(list.begin(), list.end(), data_.begin());
+    }
+    Vector(const Vector &other) = default;
+    Vector &operator=(const Vector &other) = default;
+
+    T operator[](size_t i) const { return data_[i]; }
+    T &operator[](size_t i) { return data_[i]; }
+
+    Vector operator+(const Vector &rhs) const {
+        Vector res;
+        for (size_t i = 0; i < N; ++i) res[i] = data_[i] + rhs[i];
+        return res;
+    }
+    Vector operator-(const Vector &rhs) const {
+        Vector res;
+        for (size_t i = 0; i < N; ++i) res[i] = data_[i] - rhs[i];
+        return res;
+    }
+    Vector operator*(T scalar) const {
+        Vector res;
+        for (size_t i = 0; i < N; ++i) res[i] = data_[i] * scalar;
+        return res;
+    }
+    Vector operator/(T scalar) const {
+        Vector res;
+        for (size_t i = 0; i < N; ++i) res[i] = data_[i] / scalar;
+        return res;
+    }
+    Vector &operator+=(const Vector &rhs) {
+        for (size_t i = 0; i < N; ++i) data_[i] += rhs[i];
+        return *this;
+    }
+    Vector &operator-=(const Vector &rhs) {
+        for (size_t i = 0; i < N; ++i) data_[i] -= rhs[i];
+        return *this;
+    }
+    Vector &operator*=(T scalar) {
+        for (size_t i = 0; i < N; ++i) data_[i] *= scalar;
+        return *this;
+    }
+    Vector &operator/=(T scalar) {
+        for (size_t i = 0; i < N; ++i) data_[i] /= scalar;
+        return *this;
+    }
+
+    // dot product
+    T operator*(const Vector &rhs) const {
+        T sum{};
+        for (size_t i = 0; i < N; ++i) sum += data_[i] * rhs[i];
+        return sum;
+    }
+    T sqr() const {
+        return (*this) * (*this);
+    }
+    T abs() const {
+        return std::sqrt(this->sqr());
+    }
+
+  protected:
+    std::array<T, N> data_;
+};
+
+using ThreeVector = Vector<double,3>;
+class FourVector {
+  private:
+    Vector<double, 4> v_;
+  public:
+    FourVector() = default;
+    FourVector(std::initializer_list<double> list) : v_{list} {}
+    FourVector(double x0, ThreeVector xvec) : v_{ {x0, xvec[0], xvec[1], xvec[2]} } {}
+    FourVector &operator=(const FourVector &other) = default;
+
+    FourVector operator+(const FourVector &rhs) const {
+        return FourVector{v_ + rhs.v_};
+    }
+    FourVector operator-(const FourVector &rhs) const {
+        return FourVector{v_ - rhs.v_};
+    }
+    FourVector operator*(double s) const {
+        return FourVector{v_ * s};
+    }
+    FourVector operator/(double s) const {
+        return FourVector{v_ / s};
+    }
+    FourVector &operator+=(const FourVector &rhs) {
+        v_ += rhs.v_;
+        return *this;
+    }
+    FourVector &operator-=(const FourVector &rhs) {
+        v_ -= rhs.v_;
+        return *this;
+    }
+    FourVector &operator*=(double scalar) {
+        v_ *= scalar;
+        return *this;
+    }
+    FourVector &operator/=(double scalar) {
+        v_ /= scalar;
+        return *this;
+    }
+
+    double x0() const { return v_[0]; }
+    double x1() const { return v_[1]; }
+    double x2() const { return v_[2]; }
+    double x3() const { return v_[3]; }
+    ThreeVector threevec() const { return ThreeVector{v_[1],v_[2],v_[3]}; }
+
+    double operator*(const FourVector &rhs) const {
+        return this->x0() * rhs.x0() - this->threevec() * rhs.threevec();
+    }
+    inline double sqr() const { return (*this) * (*this); }
+    inline double abs() const { return std::sqrt(sqr()); }
+    
+/*
+    ThreeVector velocity() const { return threevec() / x0(); }
+    double tau() const { return std::sqrt(x0()*x0() - x3()*x3()); }
+    double pT() const { return std::sqrt(x1()*x1() + x2()*x2()); }
+    double phi() const { return std::atan2(x2(), x1()); }
+    double eta() const { return std::atanh(x3() / x0()); }
+*/
+
+    FourVector lorentz_boost(const ThreeVector& vel) const {
+        const double v_sqr = vel.sqr();
+        const double gamma = v_sqr < 1. ? 1. / std::sqrt(1. - v_sqr) : 0;
+        const double xprime_0 = gamma * (x0() - threevec() * vel);
+        const double constantpart = gamma / (gamma + 1) * (xprime_0 + x0());
+        return FourVector(xprime_0, threevec() - vel * constantpart);
+    }
+};
+static const FourVector unit = FourVector{1,0,0,0};
+
+struct HydroCell {
+    FourVector position;
+    FourVector landau_vel;
+    double T, muB, nB, e_dens, nuc_dens;
+};
+
+enum class DileptonSource: int {
+    rho = 9001,
+    omega = 9002,
+    phi = 9003,
+    multipi = 9004,
+    QGP = 9005
+};
+
+// Always evaluated in the rest frame of the cell. Position is not needed, 
+// but could be useful for cuts (and SMASH integration)
+class Dilepton {
+  public:
+    Dilepton() = default;
+    // make constructor that receives cell
+    Dilepton(double mass, double abs_mom, const DileptonSource& source) : mass_(mass) {
+
+    }
+    Dilepton(const FourVector& pos, const FourVector& mom,
+            const DileptonSource& source) : position_(pos),
+                                     momentum_(mom),
+                                     emission_time_(pos.x0()),
+                                     mass_(mom.abs()),
+                                     source_(source) {}
+    double m() { return mass_; }
+    double q() const { return momentum_.threevec().abs(); }
+    // return momentum of each lepton
+    std::pair<FourVector, FourVector> single_lepton() const;
+  private:
+    double emission_time_ = 0, mass_ = 0;
+    FourVector position_, momentum_;
+    DileptonSource source_;
+    std::shared_ptr<HydroCell> cell_ = nullptr;
+};
+
+std::pair<FourVector, FourVector> Dilepton::single_lepton() {
+    FourVector p1{}, p2{};
+    return std::make_pair<FourVector, FourVector>{p1,p2};
+}
 
 double dilepton_phasespace(double mee) {
     const double ratio_sqr = m_electron * m_electron / (mee * mee);
@@ -45,7 +231,8 @@ double Qlat_total(double m, double q, double T, bool FF=true) {
     if (FF)
         form_factor = 4 * T_sqr / (4 * T_sqr + m_sqr);
     const double alpha_s = 6.0 * M_PI / (28.0 * std::log(T / 0.022));
-    const double Q_transv = 2 * M_PI * alpha_s * (T_sqr / m_sqr) * 2 * form_factor *
+    constexpr double K = 2.;
+    const double Q_transv = 2 * M_PI * alpha_s * (T_sqr / m_sqr) * K * form_factor *
                                    std::log(1 + 2.912 * q0 / (4 * M_PI * alpha_s * T));
     const double Q_total = (2 + m_sqr / q0 / q0) * Q_transv / 3.;
     return Q_total;
@@ -97,7 +284,15 @@ double dR_dMd3q_lat(double mee, double q, double T){
     return coef * ImD;
 }
 
-double ImD_rawa_rho()
+
+double ImD_rho_medium(double mee, double q, double T) {
+    std::cout << "Not implemented yet!"
+    return 0;
+}
+
+void radiator(const HydroCell& cell) {
+
+}
 
 /*
 double rho_lat(double q0, double T){
