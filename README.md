@@ -9,9 +9,10 @@ It can be used either as a library or as a standalone code.
 From the overarching repository run:
 
 ```
-mkdir build && cd build
+mkdir build
+cd build
 cmake ..
 cmake --build .
 ```
 
-This will compile the examplary `main.cpp` and produce the `dilepton_example` executable, which uses the configuration file `dilepton_config.txt`
+This will compile the examplary `example.cpp` and produce the `dilepton_example` executable, which uses the configuration file `dilepton_config.txt`
