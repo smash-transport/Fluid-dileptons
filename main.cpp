@@ -1,6 +1,4 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
 
 #include "fluiddileptons.h"
 
@@ -13,10 +11,13 @@ int main (int argc, char *argv[]) {
      * The radiation can be configured either inline or by config, or a combination of both,
      * which allows for dynamically adapting the parameters.
      */
-
     FluidDileptons::AcceptanceCutter::set_x_range(-0.1,0.1);
-    FluidDileptons::setup("../dil_config.txt");
+    FluidDileptons::setup("../dilepton_config.txt");
 
+    /*
+     * The main interface with the hydro code is the HydroCell class, which takes the cell
+     * parameters and radiates dileptons, which can be accessed by the hydro or output to file.
+     */
     FluidDileptons::HydroCell cell{T, muB, lambdaQGP, pos, vel, fourVolume};
     cell.radiate();
     FluidDileptons::output_cell_to_file("example.dat", cell);

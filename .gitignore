@@ -1,6 +1,7 @@
 *.o
 coarse
-old/
+build
+old
 src/diltables
 src/eostables
 *.png

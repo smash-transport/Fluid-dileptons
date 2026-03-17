@@ -32,6 +32,6 @@ target_compile_features(dilepton_hydro PUBLIC cxx_std_17)
 
 option(BUILD_EXAMPLE "Build example executable" ON)
 if(BUILD_EXAMPLE AND EXISTS ${PROJECT_SOURCE_DIR}/main.cpp)
-    add_executable(example main.cpp)
-    target_link_libraries(example PRIVATE dilepton_hydro)
+    add_executable(dilepton_example main.cpp)
+    target_link_libraries(dilepton_example PRIVATE dilepton_hydro)
 endif()
