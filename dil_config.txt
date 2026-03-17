@@ -1,0 +1,9 @@
+masses: 0, 2, 0.01
+abs_momenta: 0, 3, 0.5
+oversample : 2
+yrap_range : -0.5, 0.5
+
+#
+#
+#
+#

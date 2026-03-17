@@ -1,5 +1,6 @@
 *.o
 coarse
+old/
 src/diltables
 src/eostables
 *.png
