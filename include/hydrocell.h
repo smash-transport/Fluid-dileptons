@@ -50,8 +50,12 @@ namespace Grid{
     static void set_vector(std::vector<double>& vec,
                            double min, double max, double step) {
         vec.clear();
-        for (size_t i = 0; min + i*step <= max; ++i)
-            vec.push_back(min + i*step);
+        if (min + step >= max) {
+            vec.push_back(min);
+        } else {
+            for (size_t i = 0; min + i*step <= max; ++i)
+                vec.push_back(min + i*step);
+        }
     }
     inline void set_masses(double min, double max, double step) {
         set_vector(masses, min, max, step);

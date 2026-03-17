@@ -12,6 +12,8 @@ constexpr int Nc = 3;
 constexpr double hbarc = 0.197327;
 constexpr double m_electron = 0.000511;
 constexpr double pi_cube = M_PI * M_PI * M_PI;
+constexpr double pion_mass = 0.139;  // pion mass in GeV
+constexpr double kaon_mass = 0.494;  // kaon mass in GeV
 
 extern int N_oversample;
 

@@ -64,32 +64,17 @@ namespace Rates {
         double m, q, T, nuc_dens;
     };
 
-    double dilepton_phasespace(double mee);
     // used for cross-check
     double ImD_pQGP(const Parameters& par);
     double ImD_latQGP(const Parameters& par);
     // used for cross-check but leads to a different result from the paper
     double ImD_rho_vacuum(const Parameters& par);
     double ImD_rho_medium(const Parameters& par);
-    double dR_dMd3q_without_ImD(const Parameters& par);
-    double dR_dMd3q_QGP(const Parameters& par);
-    double choose_source(const Source s,const Parameters& par);
 
-
-    // Interpolation function for pion tadpole diagram
-    double tadpole_interpolate(double temperature);
-
-    // Imaginary part of vector correlator (4-pion contribution)
-    double Im_PiV4pi(double s);
-
-    // Imaginary part of 3-pion axial-vector correlator (a1 decay)
-    double Im_PiA3pi(double s);
-
-    // Imaginary part of 5-pion axial-vector correlator
-    double Im_PiA5pi(double s);
-
-    // Imaginary part of mixed vector correlator with pion effects
     double ImD_multipi(const Parameters& par);
+
+    double dR_dMd3q_without_ImD(const Parameters& par);
+    double choose_source(const Source s,const Parameters& par);
 
 
 } // namespace Rates

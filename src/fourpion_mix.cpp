@@ -9,7 +9,6 @@ namespace FluidDileptons {
 
 namespace Rates {
 
-    constexpr double pion_mass = 0.139;  // pion mass in GeV
     constexpr double tadpole_at_Tc = 0.49513467;  // tadpi(T_c = 0.175 GeV)
 
     // Tabulated pion tadpole in temperature grid [0.050, 0.200] with 0.001 GeV steps
@@ -47,7 +46,7 @@ namespace Rates {
     };
 
     // Interpolation function for pion tadpole diagram
-    double tadpole_interpolate(double T) {
+    static double tadpole_interpolate(double T) {
         // Linear interpolation in the tabulated data
         constexpr double Tmin = 0.05;
         constexpr double dT = 0.001;
@@ -65,7 +64,7 @@ namespace Rates {
     }
 
     // 3-pion axial-vector correlator (a1 → pi + rho removed)
-    double Im_PiA3pi(double s) {
+    static double Im_PiA3pi(double s) {
         double img_corr = 0;
         constexpr double s_threshold = 9.0 * pion_mass * pion_mass;
 
@@ -84,7 +83,7 @@ namespace Rates {
     }
 
     // Vector correlator (4-pion contribution)
-    double Im_PiV4pi(double s) {
+    static double Im_PiV4pi(double s) {
         constexpr double s_threshold = 16.0 * pion_mass * pion_mass;
 
         double im_corr = 0;
@@ -105,7 +104,7 @@ namespace Rates {
     }
 
     // 5-pion axial-vector correlator
-    double Im_PiA5pi(double s) {
+    static double Im_PiA5pi(double s) {
         double img_corr = 0;
         double s_threshold = 25.0 * pion_mass * pion_mass;
 

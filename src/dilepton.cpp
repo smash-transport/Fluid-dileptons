@@ -13,7 +13,7 @@ std::pair<FourVector, FourVector> Dilepton::single_lepton() const {
 
 namespace Rates {
 
-    double dilepton_phasespace(double mee) {
+    static double dilepton_phasespace(double mee) {
         const double ratio_sqr = m_electron * m_electron / (mee * mee);
         if (1.0 - 4.0 * ratio_sqr < 0.0)
             return 0.0;
@@ -65,19 +65,29 @@ namespace Rates {
         return ImD_total;
     }
 
-    // used for cross-check but leads to a different result from the paper
-    double ImD_rho_vacuum(const Parameters& par) {
-        const double m = par.m;
+    static double breit_wigner(double m, double m0, double G0, double m_thr) {
+        const double m_sqr = m*m, m0_sqr = m0*m0;
+        const double G = (m >= m_thr) ? G0 * std::sqrt((1 - m_thr*m_thr/m_sqr) / (1 - m_thr*m_thr/m0_sqr)) : 0;
+        return m_sqr * m0 * G / (std::pow(m_sqr - m0_sqr, 2) + m_sqr * G * G) / std::sqrt(m0_sqr+G*G);
+    }
 
+    double ImD_rho_vacuum(const Parameters& par) {
         constexpr double M0 = 0.778;
-        constexpr double M0_sqr = M0*M0;
         constexpr double G0 = 0.149;
-        constexpr double m_thr = 0.139;
-        const double m_sqr = m*m;
-        const double G = m >= m_thr ? G0 * std::sqrt((1-m_thr*m_thr/m_sqr) / (1-m_thr*m_thr/M0_sqr)) : 0;
-        const double gamma = std::sqrt(M0_sqr*(M0_sqr+G*G));
-        const double BW = m_sqr*M0*G*gamma / (std::pow(m_sqr-M0_sqr, 2) + m_sqr*G*G) / std::sqrt(M0_sqr+gamma);
-        return BW/(2*M_PI);
+        constexpr double m_thr = pion_mass;
+        return breit_wigner(par.m, M0, G0, m_thr)/(2*M_PI);
+    }
+    double ImD_omega_vacuum(const Parameters& par) {
+        constexpr double M0 = 0.783;
+        constexpr double G0 = 0.00849;
+        constexpr double m_thr = pion_mass;
+        return breit_wigner(par.m, M0, G0, m_thr)/(2*M_PI);
+    }
+    double ImD_phi_vacuum(const Parameters& par) {
+        constexpr double M0 = 1.019;
+        constexpr double G0 = 0.00426;
+        constexpr double m_thr = kaon_mass;
+        return breit_wigner(par.m, M0, G0, m_thr)/(2*M_PI);
     }
 
     double ImD_rho_medium(const Parameters& par) {
@@ -103,10 +113,24 @@ namespace Rates {
     double choose_source(const Source s, const Parameters& par) {
         const double m = par.m, q = par.q, T = par.T;
         const double coef = dR_dMd3q_without_ImD(par);
+
+        static bool warned_vacuum = false;
+        if (!warned_vacuum && (s == Source::rho || s == Source::omega || s == Source::phi)) {
+            std::cerr << "Using vacuum spectral function for vector mesons, "
+                      << "in-medium rates not yet implemented.\n";
+            warned_vacuum = true;
+        }
+
         if (s == Source::QGP) {
             return coef * ImD_latQGP(par);
         } else if(s == Source::multipi) {
             return coef * ImD_multipi(par);
+        } else if (s == Source::rho) {
+            return coef * ImD_rho_vacuum(par);
+        } else if (s == Source::omega) {
+            return coef * ImD_omega_vacuum(par);
+        } else if (s == Source::phi) {
+            return coef * ImD_phi_vacuum(par);
         } else {
             notImplemented();
             return 0;
