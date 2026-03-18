@@ -66,7 +66,7 @@ namespace Rates {
     // 3-pion axial-vector correlator (a1 → pi + rho removed)
     static double Im_PiA3pi(double s) {
         double img_corr = 0;
-        constexpr double s_threshold = 9.0 * pion_mass * pion_mass;
+        constexpr double s_threshold = 9.0 * mass_pion * mass_pion;
 
         if (s > s_threshold) {
             constexpr double A = 0.0305;
@@ -84,7 +84,7 @@ namespace Rates {
 
     // Vector correlator (4-pion contribution)
     static double Im_PiV4pi(double s) {
-        constexpr double s_threshold = 16.0 * pion_mass * pion_mass;
+        constexpr double s_threshold = 16.0 * mass_pion * mass_pion;
 
         double im_corr = 0;
         if (s > s_threshold) {
@@ -106,7 +106,7 @@ namespace Rates {
     // 5-pion axial-vector correlator
     static double Im_PiA5pi(double s) {
         double img_corr = 0;
-        double s_threshold = 25.0 * pion_mass * pion_mass;
+        double s_threshold = 25.0 * mass_pion * mass_pion;
 
         if (s > s_threshold) {
             constexpr double A = 0.22;
