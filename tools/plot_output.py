@@ -21,7 +21,6 @@ for f in datafiles:
                 sum_data[x_key] = 0
             sum_data[x_key] += y
 
-# Plot the sum of all curves in black
 if sum_data:
     x_vals = sorted(sum_data.keys())
     y_vals = [sum_data[x] for x in x_vals]
@@ -32,6 +31,6 @@ plt.yscale('log')
 plt.ylim(5*10**(-17),10**(-4))
 plt.legend(loc=0)
 plt.xlabel("$M$ [GeV]")
-plt.ylabel(r"dR/d$M\ [\mathrm{fm}^{-4}\mathrm{GeV}]$")
+plt.ylabel(r"dR/d$M\ [\mathrm{fm}^{-4}\mathrm{GeV^{-1}}]$")
 #plt.savefig("latQGP_rate_fig2-1304.2309.pdf")
 plt.show()

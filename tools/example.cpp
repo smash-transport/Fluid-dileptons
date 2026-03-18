@@ -12,7 +12,7 @@ int main (int argc, char *argv[]) {
      * which allows for dynamically adapting the parameters.
      */
     FluidDileptons::AcceptanceCutter::set_x_range(-0.1,0.1);
-    FluidDileptons::setup("../dilepton_config.txt");
+    FluidDileptons::setup("../tools/dilepton_config.txt");
 
     /*
      * The main interface with the hydro code is the HydroCell class, which takes the cell

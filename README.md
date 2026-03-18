@@ -15,4 +15,4 @@ cmake ..
 cmake --build .
 ```
 
-This will compile the examplary `example.cpp` and produce the `dilepton_example` executable, which uses the configuration file `dilepton_config.txt`
+This will compile the examplary `tools/example.cpp` and produce the `dilepton_example` executable (in the build folder), which uses the configuration file `tools/dilepton_config.txt`
