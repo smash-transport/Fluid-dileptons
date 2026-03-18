@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # sources
 set(SOURCES
+    src/acceptance.cpp
     src/dilepton.cpp
     src/fourpion_mix.cpp
     src/output.cpp

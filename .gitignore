@@ -4,5 +4,6 @@ build
 old
 src/diltables
 src/eostables
+teste*
 *.png
 *.nb

@@ -9,8 +9,14 @@
 
 namespace FluidDileptons {
 
+int N_oversample = 1;
+
+std::random_device rd;
+std::ranlux24_base random(rd());
+std::uniform_real_distribution<> uniform(0, 1);
+
 void notImplemented() {
-    std::cerr << "Not implemented yet!\n";
+    std::cerr << "Not implemented yet!" << std::endl;
 }
 
 // Trims whitespace from strings

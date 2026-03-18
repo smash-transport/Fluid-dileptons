@@ -7,10 +7,10 @@
 namespace FluidDileptons {
 
 // This assumes a non-interacting hadron gas
-static double grand_canonical_density(double T, double mu, double mass, double spin, int degeneracy);
+double grand_canonical_density(double T, double mu, double mass, double spin, int degeneracy = 1);
 
 // includes n, p, nbar, pbar; but not baryonic resonances
-static double grand_canonical_nucleon_density(double T, double mu);
+double grand_canonical_nucleon_density(double T, double mu);
 
 // Main interface with the hydro code
 class HydroCell {
@@ -43,54 +43,12 @@ class HydroCell {
     DileptonList dileptons_;
 };
 
-
-namespace Grid{
-    inline std::vector<double> masses, qs;
-
-    static void set_vector(std::vector<double>& vec,
-                           double min, double max, double step) {
-        vec.clear();
-        if (min + step >= max) {
-            vec.push_back(min);
-        } else {
-            for (size_t i = 0; min + i*step <= max; ++i)
-                vec.push_back(min + i*step);
-        }
-    }
-    inline void set_masses(double min, double max, double step) {
-        set_vector(masses, min, max, step);
-    }
-    inline void set_masses(std::vector<double> vec) {
-        masses = vec;
-    }
-    inline void set_qs(double min, double max, double step) {
-        set_vector(qs, min, max, step);
-    }
-    inline void set_qs(std::vector<double> vec) {
-        qs = vec;
-    }
-}
-
-
-static double grand_canonical_density(double T, double mu, double mass, double spin, int degeneracy=1) {
-    const int stat = static_cast<int>(round(2. * spin)) & 1 ? -1 : 1;
-    double density = 0;
-    for (int i = 1; i < 11; i++) {
-        density += std::pow(stat, i + 1) *
-                    std::cyl_bessel_k(2, i * mass / T) *
-                    (std::exp(i * mu / T) + std::exp(-i * mu / T)) / i;
-                    // p,n                         pbar,nbar
-    }
-    density *= degeneracy * (2 * spin + 1) * mass * mass * T /
-                    (2 * M_PI * M_PI * std::pow(hbarc, -3));
-    return density; // in fm⁻³
-}
-
-static double grand_canonical_nucleon_density(double T, double mu) {
-    constexpr double nuc_mass = 0.938;
-    constexpr int g = 2; // isospin
-    constexpr double nuc_J = 0.5;
-    return grand_canonical_density(T, mu, nuc_mass, nuc_J, g);
+namespace Grid {
+    extern std::vector<double> masses, qs;
+    void set_masses(double min, double max, double step);
+    void set_masses(std::vector<double> vec);
+    void set_qs(double min, double max, double step);
+    void set_qs(std::vector<double> vec);
 }
 
 } // FluidDileptons

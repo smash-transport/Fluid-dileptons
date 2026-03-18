@@ -1,12 +1,29 @@
-#include <iostream>
+#include <cmath>
 
 #include "acceptance.h"
 #include "hydrocell.h"
-#include "dilepton.h"
 
 namespace FluidDileptons {
 
-int N_oversample = 1;
+double grand_canonical_density(double T, double mu, double mass, double spin, int degeneracy) {
+    const int stat = static_cast<int>(round(2. * spin)) & 1 ? -1 : 1;
+    double density = 0;
+    for (int i = 1; i < 11; i++) {
+        density += std::pow(stat, i + 1) *
+                    std::cyl_bessel_k(2, i * mass / T) *
+                    (std::exp(i * mu / T) + std::exp(-i * mu / T)) / i;
+    }
+    density *= degeneracy * (2 * spin + 1) * mass * mass * T /
+                    (2 * M_PI * M_PI * std::pow(hbarc, -3));
+    return density;
+}
+
+double grand_canonical_nucleon_density(double T, double mu) {
+    constexpr double nuc_mass = 0.938;
+    constexpr int g = 2;
+    constexpr double nuc_J = 0.5;
+    return grand_canonical_density(T, mu, nuc_mass, nuc_J, g);
+}
 
 DileptonList HydroCell::dileptons() const {
     return dileptons_;
@@ -42,4 +59,34 @@ void HydroCell::radiate() {
     }
 }
 
+namespace Grid {
+    std::vector<double> masses, qs;
+
+    void set_vector(std::vector<double>& vec, double min, double max, double step) {
+        vec.clear();
+        if (min + step >= max) {
+            vec.push_back(min);
+        } else {
+            for (size_t i = 0; min + i*step <= max; ++i)
+                vec.push_back(min + i*step);
+        }
+    }
+
+    void set_masses(double min, double max, double step) {
+        set_vector(masses, min, max, step);
+    }
+
+    void set_masses(std::vector<double> vec) {
+        masses = vec;
+    }
+
+    void set_qs(double min, double max, double step) {
+        set_vector(qs, min, max, step);
+    }
+
+    void set_qs(std::vector<double> vec) {
+        qs = vec;
+    }
 }
+
+} // FluidDileptons

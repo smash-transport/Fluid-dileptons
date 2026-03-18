@@ -3,6 +3,8 @@
 #include <vector>
 #include <array>
 #include <cmath>
+#include <stdexcept>
+#include <iostream>
 
 #include "setup.h"
 
