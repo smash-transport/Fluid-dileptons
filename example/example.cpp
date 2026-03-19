@@ -3,16 +3,18 @@
 #include "fluiddileptons.h"
 
 int main (int argc, char *argv[]) {
-    const double T = 0.15, muB=0.2, lambdaQGP=0.3, fourVolume=0.5; // fake cell parameters
+    const double T = 0.14, muB=0.2, lambdaQGP=0.2, fourVolume=0.5; // fake cell parameters
     FluidDileptons::FourVector pos = {10,0,0,3}; // fake cell 4-position
-    FluidDileptons::ThreeVector vel = {0,0,0.7}; // fake cell Landau velocity
+    FluidDileptons::ThreeVector vel = {0,0.2,0}; // fake cell Landau velocity
 
     /*
      * The radiation can be configured either inline or by config, or a combination of both,
      * which allows for dynamically adapting the parameters.
      */
-    FluidDileptons::AcceptanceCutter::set_x_range(-0.1,0.1);
-    FluidDileptons::setup("../tools/dilepton_config.txt");
+    bool setup = FluidDileptons::setup("../dilepton_config.txt");
+
+    // For example:
+    FluidDileptons::AcceptanceCutter::set_yrap_range(-1,1);
 
     /*
      * The main interface with the hydro code is the HydroCell class, which takes the cell
@@ -20,7 +22,7 @@ int main (int argc, char *argv[]) {
      */
     FluidDileptons::HydroCell cell{T, muB, lambdaQGP, pos, vel, fourVolume};
     cell.radiate();
-    FluidDileptons::output_cell_to_file("example.dat", cell);
+    FluidDileptons::output_cell_to_file("example_spectra.dat", cell);
 
     return 0;
 }

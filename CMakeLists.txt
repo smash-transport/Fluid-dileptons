@@ -30,9 +30,3 @@ add_library(fluid_dileptons ${SOURCES} ${HEADERS})
 
 target_include_directories(fluid_dileptons PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_compile_features(fluid_dileptons PUBLIC cxx_std_17)
-
-option(BUILD_EXAMPLE "Build example executable" ON)
-if(BUILD_EXAMPLE AND EXISTS ${PROJECT_SOURCE_DIR}/tools/example.cpp)
-    add_executable(dilepton_example tools/example.cpp)
-    target_link_libraries(dilepton_example PRIVATE fluid_dileptons)
-endif()

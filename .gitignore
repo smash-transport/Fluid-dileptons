@@ -4,6 +4,7 @@ build
 old
 src/diltables
 src/eostables
+plot_output.py
 teste*
 *.png
 *.nb

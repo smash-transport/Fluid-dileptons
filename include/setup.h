@@ -25,5 +25,6 @@ void output_cell_to_file(const std::string& filepath, const HydroCell& cell);
 
 void notImplemented();
 bool setup(const std::string& filepath);
+void default_setup();
 
 }

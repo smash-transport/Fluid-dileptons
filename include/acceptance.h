@@ -6,8 +6,6 @@
 namespace FluidDileptons {
 
 namespace AcceptanceCutter {
-  static constexpr double large_cut = 100;
-
   void set_x_range(double min, double max);
   void set_y_range(double min, double max);
   void set_eta_range(double min, double max);

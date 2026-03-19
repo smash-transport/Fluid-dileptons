@@ -55,6 +55,7 @@ static void parse_range_step(const std::string& key, const std::string& value,
 }
 
 bool setup(const std::string& filepath) {
+    default_setup();
     std::ifstream config_file(filepath);
     std::ostringstream oss_err;
 
@@ -113,6 +114,21 @@ bool setup(const std::string& filepath) {
 
     std::cout << "Configuration loaded successfully\n";
     return true;
+}
+
+void default_setup() {
+    constexpr double large_cut = 100;
+
+    Grid::set_masses(0.0, 2, 0.01);
+    Grid::set_qs(0.0, 3, 0.1);
+
+    AcceptanceCutter::set_x_range(-large_cut, large_cut);
+    AcceptanceCutter::set_y_range(-large_cut, large_cut);
+    AcceptanceCutter::set_eta_range(-large_cut, large_cut);
+    AcceptanceCutter::set_pT_range(0, large_cut);
+    AcceptanceCutter::set_yrap_range(-large_cut, large_cut);
+
+    N_oversample = 1;
 }
 
 }
