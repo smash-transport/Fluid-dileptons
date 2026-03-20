@@ -120,7 +120,7 @@ void default_setup() {
     constexpr double large_cut = 100;
 
     Grid::set_masses(0.0, 2, 0.01);
-    Grid::set_qs(0.0, 3, 0.1);
+    Grid::set_qs(0.0, 3, 0.05);
 
     AcceptanceCutter::set_x_range(-large_cut, large_cut);
     AcceptanceCutter::set_y_range(-large_cut, large_cut);
