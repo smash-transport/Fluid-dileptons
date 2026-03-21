@@ -29,9 +29,9 @@ class Dilepton {
              const HydroCell* cell, double weight=0) :
         mass_(mass),
         q_(q),
+        weight_((weight >= 0 && weight <= 1) ? weight : invalidArgument("weight = " + std::to_string(weight))),
         source_(source),
-        cell_(cell),
-        weight_((weight >= 0 && weight <= 1) ? weight : invalidArgument("weight = " + std::to_string(weight))) {
+        cell_(cell) {
             ThreeVector vel = sample_isotropic_3D_versor()*q;
             momentum_ = FourVector{std::sqrt(mass*mass + q*q), vel};
         }

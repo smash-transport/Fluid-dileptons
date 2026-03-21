@@ -18,12 +18,12 @@ class HydroCell {
     HydroCell(double T, double muB, double QGP_frac,
             const FourVector& pos, const ThreeVector& vel,
             double four_volume = 1) :
-                T_(T),
-                muB_(muB),
-                QGP_fraction_(QGP_frac),
-                position_(pos),
-                landau_vel_(vel),
-                four_volume_(four_volume) {
+              position_(pos),
+              landau_vel_(vel),
+              T_(T),
+              muB_(muB),
+              QGP_fraction_(QGP_frac),
+              four_volume_(four_volume) {
         nuc_dens_ = grand_canonical_nucleon_density(T_, muB_);
     }
     FourVector position() const { return position_; }
