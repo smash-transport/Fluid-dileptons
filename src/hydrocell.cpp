@@ -1,7 +1,9 @@
 #include <cmath>
+#include <cassert>
 
 #include "acceptance.h"
 #include "hydrocell.h"
+#include "spectrum.h"
 
 namespace FluidDileptons {
 
@@ -25,20 +27,24 @@ double grand_canonical_nucleon_density(double T, double mu) {
     return grand_canonical_density(T, mu, nuc_mass, nuc_J, g);
 }
 
-DileptonList HydroCell::dileptons() const {
+const DileptonList& HydroCell::dileptons() const {
     return dileptons_;
 }
 
 void HydroCell::radiate() {
-    if (!AcceptanceCutter::in_spatial_range(position_))
+    if(radiated_) {
+        throw std::runtime_error("Radiation already done for this cell, cannot radiate again.");
+    }
+    if (!AcceptanceCutter::in_spatial_range(position_)) {
         return;
+    }
 
-    dileptons_.reserve(N_oversample * Grid::masses.size() * Grid::qs.size() * all_sources.size());
-    for (double m: Grid::masses) {
+    dileptons_.reserve(N_oversample * MQGrid::masses.size() * MQGrid::qs.size() * all_sources.size());
+    for (double m: MQGrid::masses) {
         if (m <= 0.0001) {
             continue;
         }
-        for (double q: Grid::qs) {
+        for (double q: MQGrid::qs) {
             const Rates::Parameters dilepton_par{m, q, T_, nuc_dens_};
             for (int n_sample = 0; n_sample < N_oversample; ++n_sample) {
                 for (Source s: all_sources) {
@@ -53,40 +59,12 @@ void HydroCell::radiate() {
                         continue;
                     // TODO: acceptance cut on single lepton if needed
                     dileptons_.push_back(dil);
+                    Spectra::fill(dil);
                 }
             }
         }
     }
-}
-
-namespace Grid {
-    std::vector<double> masses, qs;
-
-    void set_vector(std::vector<double>& vec, double min, double max, double step) {
-        vec.clear();
-        if (min + step >= max) {
-            vec.push_back(min);
-        } else {
-            for (size_t i = 0; min + i*step <= max; ++i)
-                vec.push_back(min + i*step);
-        }
-    }
-
-    void set_masses(double min, double max, double step) {
-        set_vector(masses, min, max, step);
-    }
-
-    void set_masses(std::vector<double> vec) {
-        masses = vec;
-    }
-
-    void set_qs(double min, double max, double step) {
-        set_vector(qs, min, max, step);
-    }
-
-    void set_qs(std::vector<double> vec) {
-        qs = vec;
-    }
+    radiated_ = true;
 }
 
 } // FluidDileptons

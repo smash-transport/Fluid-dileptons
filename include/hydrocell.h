@@ -27,10 +27,11 @@ class HydroCell {
         nuc_dens_ = grand_canonical_nucleon_density(T_, muB_);
     }
     FourVector position() const { return position_; }
-    DileptonList dileptons() const;
+    const DileptonList& dileptons() const;
     void radiate();
 
   private:
+    bool radiated_ = false;
     FourVector position_;
     ThreeVector landau_vel_;
     double T_, muB_, nuc_dens_, QGP_fraction_;
@@ -42,13 +43,5 @@ class HydroCell {
     double four_volume_;
     DileptonList dileptons_;
 };
-
-namespace Grid {
-    extern std::vector<double> masses, qs;
-    void set_masses(double min, double max, double step);
-    void set_masses(std::vector<double> vec);
-    void set_qs(double min, double max, double step);
-    void set_qs(std::vector<double> vec);
-}
 
 } // FluidDileptons

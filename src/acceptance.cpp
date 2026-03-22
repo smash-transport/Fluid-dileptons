@@ -3,7 +3,6 @@
 namespace FluidDileptons {
 
 namespace AcceptanceCutter {
-
   namespace {
     double eta_s_min, eta_s_max, x_min, x_max, y_min, y_max;
     double pT_min, pT_max, yrap_min, yrap_max;
@@ -42,7 +41,6 @@ namespace AcceptanceCutter {
     const bool in_pT_range = (pT_min <= mom.xT()) && (mom.xT() <= pT_max);
     return in_yrap_range && in_pT_range;
   }
-
 }
 
 }

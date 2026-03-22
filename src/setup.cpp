@@ -4,16 +4,13 @@
 #include <algorithm>
 
 #include "acceptance.h"
-#include "setup.h"
 #include "hydrocell.h"
+#include "setup.h"
+#include "spectrum.h"
 
 namespace FluidDileptons {
 
 int N_oversample = 1;
-
-std::random_device rd;
-std::ranlux24_base random(rd());
-std::uniform_real_distribution<> uniform(0, 1);
 
 void notImplemented() {
     std::cerr << "Not implemented yet!" << std::endl;
@@ -26,9 +23,9 @@ static std::string trim(const std::string& str) {
     return (start == std::string::npos) ? "" : str.substr(start, end - start + 1);
 }
 
-// Type alias for AcceptanceCutter and Grid function pointers
+// Type alias for AcceptanceCutter and MQGrid function pointers
 using RangeSetterFunc = void (*)(double, double);
-using RangeStepSetterFunc = void (*)(double, double, double);
+using RangeStepSetterFunc = void (*)(double, double, double, bool);
 
 static void parse_range(const std::string& key, const std::string& value,
                         RangeSetterFunc setter) {
@@ -47,7 +44,7 @@ static void parse_range_step(const std::string& key, const std::string& value,
     double min, max, step;
     std::stringstream ss(value);
     if (ss >> min >> max >> step) {
-        setter(min, max, step);
+        setter(min, max, step, true);
         std::cout << "Set " << key << ": [" << min << ", " << max << "] with step " << step << "\n";
     } else {
         std::cerr << "Could not parse " << key << ": " << value << "\n";
@@ -81,9 +78,9 @@ bool setup(const std::string& filepath) {
         std::replace(value.begin(), value.end(), ',', ' '); // remove comma if needed (config looks nicer)
 
         if (key == "masses") {
-            parse_range_step(key, value, Grid::set_masses);
+            parse_range_step(key, value, MQGrid::set_masses);
         } else if (key == "abs_momenta") {
-            parse_range_step(key, value, Grid::set_qs);
+            parse_range_step(key, value, MQGrid::set_qs);
         } else if (key == "x_range") {
             parse_range(key, value, AcceptanceCutter::set_x_range);
         } else if (key == "y_range") {
@@ -109,6 +106,9 @@ bool setup(const std::string& filepath) {
         }
     }
 
+    // Make this a config key?
+    Spectra::initialize();
+
     config_file.close();
     // todo: validate values?
 
@@ -119,8 +119,8 @@ bool setup(const std::string& filepath) {
 void default_setup() {
     constexpr double large_cut = 100;
 
-    Grid::set_masses(0.0, 2, 0.01);
-    Grid::set_qs(0.0, 3, 0.05);
+    MQGrid::set_masses(0.0, 2, 0.01);
+    MQGrid::set_qs(0.0, 3, 0.05);
 
     AcceptanceCutter::set_x_range(-large_cut, large_cut);
     AcceptanceCutter::set_y_range(-large_cut, large_cut);
@@ -131,4 +131,4 @@ void default_setup() {
     N_oversample = 1;
 }
 
-}
+} // namespace FluidDileptons

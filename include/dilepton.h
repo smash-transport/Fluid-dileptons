@@ -13,7 +13,7 @@ enum Source {
     multipi = 9004,
     QGP = 9005
 };
-static const std::vector<Source> all_sources {
+const std::vector<Source> all_sources {
     rho, omega, phi, multipi, QGP};
 
 static int invalidArgument(std::string message = "") {
@@ -75,7 +75,6 @@ namespace Rates {
 
     double dR_dMd3q_without_ImD(const Parameters& par);
     double choose_source(const Source s,const Parameters& par);
-
 
 } // namespace Rates
 

@@ -22,7 +22,8 @@ int main (int argc, char *argv[]) {
      */
     FluidDileptons::HydroCell cell{T, muB, lambdaQGP, pos, vel, fourVolume};
     cell.radiate();
-    FluidDileptons::output_cell_to_file("example_spectra.dat", cell);
+    FluidDileptons::output_cell_to_file("example_cell.dat", cell);
+    FluidDileptons::output_spectra_to_file("example_spectra.dat");
 
     return 0;
 }

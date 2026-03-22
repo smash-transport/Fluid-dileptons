@@ -4,5 +4,6 @@
 #include "dilepton.h"
 #include "hydrocell.h"
 #include "output.h"
+#include "spectrum.h"
 #include "vector.h"
 #include "setup.h"

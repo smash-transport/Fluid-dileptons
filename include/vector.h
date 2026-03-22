@@ -162,10 +162,12 @@ inline std::ostream& operator<<(std::ostream& os, const FourVector& v) {
 
 // Marsaglia algorithm
 inline ThreeVector sample_isotropic_3D_versor() {
+    static thread_local std::ranlux24_base thread_random(std::random_device{}());
+    static thread_local std::uniform_real_distribution<> thread_uniform(0.0, 1.0);
     double x1, x2, s;
     do {
-        x1 = 2*uniform(random) - 1;
-        x2 = 2*uniform(random) - 1;
+        x1 = 2 * thread_uniform(thread_random) - 1;
+        x2 = 2 * thread_uniform(thread_random) - 1;
         s = x1*x1 + x2*x2;
     } while (s >= 1);
 

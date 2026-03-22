@@ -11,9 +11,11 @@ set(SOURCES
     src/acceptance.cpp
     src/dilepton.cpp
     src/fourpion_mix.cpp
+    src/grid.cpp
     src/output.cpp
     src/hydrocell.cpp
     src/setup.cpp
+    src/spectrum.cpp
 )
 
 # Headers
@@ -23,6 +25,7 @@ set(HEADERS
     include/hydrocell.h
     include/output.h
     include/setup.h
+    include/spectrum.h
     include/vector.h
 )
 
