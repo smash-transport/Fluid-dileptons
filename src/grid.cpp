@@ -8,9 +8,9 @@ namespace FluidDileptons {
 */
 namespace MQGrid {
     namespace {
-        bool masses_set = false, qs_set = false;
+        bool masses_set = false, mom_abs_set = false;
     }
-    std::vector<double> masses, qs;
+    std::vector<double> masses, mom_abs;
 
     static void set_vector(std::vector<double>& vec, double min, double max, double step) {
         vec.clear();
@@ -40,22 +40,22 @@ namespace MQGrid {
         masses_set = true;
     }
 
-    void set_qs(double min, double max, double step, bool reset) {
-        if (qs_set && !reset) {
-            std::cerr << "Warning: qs already set, ignoring.\n";
+    void set_mom_abs(double min, double max, double step, bool reset) {
+        if (mom_abs_set && !reset) {
+            std::cerr << "Warning: mom_abs already set, ignoring.\n";
             return;
         }
-        set_vector(qs, min, max, step);
-        qs_set = true;
+        set_vector(mom_abs, min, max, step);
+        mom_abs_set = true;
     }
 
-    void set_qs(std::vector<double> vec, bool reset) {
-        if (qs_set && !reset) {
-            std::cerr << "Warning: qs already set, ignoring.\n";
+    void set_mom_abs(std::vector<double> vec, bool reset) {
+        if (mom_abs_set && !reset) {
+            std::cerr << "Warning: mom_abs already set, ignoring.\n";
             return;
         }
-        qs = vec;
-        qs_set = true;
+        mom_abs = vec;
+        mom_abs_set = true;
     }
 
     static size_t find_axis_index(const std::vector<double>& axis, double value) {
@@ -75,7 +75,7 @@ namespace MQGrid {
     }
 
     std::pair<size_t, size_t> find_indices(double mass, double q) {
-        return {find_axis_index(masses, mass), find_axis_index(qs, q)};
+        return {find_axis_index(masses, mass), find_axis_index(mom_abs, q)};
     }
 }
 

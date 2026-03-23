@@ -37,7 +37,7 @@ void output_spectra_to_file(const std::string& filepath) {
     std::ostringstream buffer;
 
     buffer << "# Columns: q ";
-    for (double q : MQGrid::qs) {
+    for (double q : MQGrid::mom_abs) {
         buffer << q << " ";
     }
     buffer << "\n# Rows: mass ";
@@ -53,7 +53,7 @@ void output_spectra_to_file(const std::string& filepath) {
 
         // One row per q-bin; each row has masses.size() entries.
         // This is faster (somehow) than using indices directly
-        for (double q: MQGrid::qs) {
+        for (double q: MQGrid::mom_abs) {
             for (double m: MQGrid::masses) {
                 if (m > MQGrid::masses.front()) {
                     block << ' ';
@@ -72,7 +72,7 @@ void output_source_spectrum_to_file(const std::string& filepath, Source source) 
     std::ostringstream buffer;
 
     buffer << "# Columns: q_grid ";
-    for (double q : MQGrid::qs) {
+    for (double q : MQGrid::mom_abs) {
         buffer << q << " ";
     }
     buffer << "\n# Rows: mass_grid ";
@@ -86,7 +86,7 @@ void output_source_spectrum_to_file(const std::string& filepath, Source source) 
 
         // One row per q-bin; each row has masses.size() entries.
         // This is faster (somehow) than using indices directly
-        for (double q: MQGrid::qs) {
+        for (double q: MQGrid::mom_abs) {
             for (double m: MQGrid::masses) {
             if (m > MQGrid::masses.front()) {
                 buffer << ' ';

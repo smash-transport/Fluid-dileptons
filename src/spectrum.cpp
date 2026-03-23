@@ -8,9 +8,11 @@ namespace FluidDileptons {
 
 Spectrum::Spectrum(Source source) :
     source_(source) {
-    weights_.assign(MQGrid::masses.size() * MQGrid::qs.size(), 0.0);
+    weights_.assign(MQGrid::masses.size() * MQGrid::mom_abs.size(), 0.0);
 }
-
+void Spectrum::reset() {
+    std::fill(weights_.begin(), weights_.end(), 0.0);
+}
 void Spectrum::fill(const Dilepton& dilepton) {
     if (dilepton.source() != source_)
         return;
@@ -28,6 +30,10 @@ void Spectrum::add(double mass, double q, double weight) {
     const size_t idx = index(mass, q);
     weights_[idx] += weight;
 }
+void Spectrum::add(std::pair<size_t,size_t> indices, double weight) {
+    const size_t idx = index(indices);
+    weights_[idx] += weight;
+}
 
 double Spectrum::weight_at(double mass, double q) const {
     return weights_[index(mass, q)];
@@ -38,17 +44,13 @@ size_t Spectrum::index(double mass, double q) const {
 
 // Using std::pair avoids having two overloads (of weight_at) with
 // signatures that could be implicitly converted
-void Spectrum::add(std::pair<size_t,size_t> indices, double weight) {
-    const size_t idx = index(indices);
-    weights_[idx] += weight;
-}
 double Spectrum::weight_at(std::pair<size_t,size_t> indices) const {
     const auto [mass_index, q_index] = indices;
-    return weights_[mass_index * MQGrid::qs.size() + q_index];
+    return weights_[mass_index * MQGrid::mom_abs.size() + q_index];
 }
 size_t Spectrum::index(std::pair<size_t,size_t> indices) const {
     const auto [mass_index, q_index] = indices;
-    return mass_index * MQGrid::qs.size() + q_index;
+    return mass_index * MQGrid::mom_abs.size() + q_index;
 }
 
 namespace Spectra {
@@ -80,7 +82,12 @@ namespace Spectra {
     const Spectrum& get(Source source) {
         return get_mutable(source);
     }
-    void add(Source source, std::pair<size_t, size_t> indices, double weight) {
+    void add(Source source, double m, double q, double weight) {
+        if (weight == 0.0)
+            return;
+        get_mutable(source).add(m, q, weight);
+    }
+    void add(Source source, std::pair<size_t,size_t> indices, double weight) {
         if (weight == 0.0)
             return;
         get_mutable(source).add(indices, weight);

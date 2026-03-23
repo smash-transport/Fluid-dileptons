@@ -115,12 +115,14 @@ namespace Rates {
         const double m = par.m, q = par.q, T = par.T;
         const double coef = dR_dMd3q_without_ImD(par);
 
+/*
         static bool warned_vacuum = false;
         if (!warned_vacuum && (s == Source::rho || s == Source::omega || s == Source::phi)) {
             std::cerr << "Using vacuum spectral function for vector mesons, "
                       << "in-medium rates not yet implemented.\n";
             warned_vacuum = true;
         }
+*/
 
         if (s == Source::QGP) {
             return coef * ImD_latQGP(par);

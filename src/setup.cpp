@@ -96,7 +96,7 @@ bool setup(const std::string& filepath) {
         if (key == "masses") {
             parse_range_step(key, value, MQGrid::set_masses);
         } else if (key == "abs_momenta") {
-            parse_range_step(key, value, MQGrid::set_qs);
+            parse_range_step(key, value, MQGrid::set_mom_abs);
         } else if (key == "x_range") {
             parse_range(key, value, AcceptanceCutter::set_x_range);
         } else if (key == "y_range") {
@@ -142,7 +142,7 @@ bool default_setup() {
     constexpr double large_cut = 100;
 
     MQGrid::set_masses(0.0, 2, 0.01);
-    MQGrid::set_qs(0.0, 3, 0.05);
+    MQGrid::set_mom_abs(0.0, 3, 0.05);
 
     AcceptanceCutter::set_x_range(-large_cut, large_cut);
     AcceptanceCutter::set_y_range(-large_cut, large_cut);

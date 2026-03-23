@@ -9,11 +9,11 @@
 namespace FluidDileptons {
 
 namespace MQGrid {
-    extern std::vector<double> masses, qs;
+    extern std::vector<double> masses, mom_abs;
     void set_masses(double min, double max, double step, bool reset = false);
     void set_masses(std::vector<double> vec, bool reset = false);
-    void set_qs(double min, double max, double step, bool reset = false);
-    void set_qs(std::vector<double> vec, bool reset = false);
+    void set_mom_abs(double min, double max, double step, bool reset = false);
+    void set_mom_abs(std::vector<double> vec, bool reset = false);
     std::pair<size_t, size_t> find_indices(double mass, double q);
 }
 
@@ -24,15 +24,11 @@ class Spectrum {
 
     Source source() const { return source_; }
     const std::vector<double>& masses() const { return MQGrid::masses; }
-    const std::vector<double>& qs() const { return MQGrid::qs; }
+    const std::vector<double>& mom_abs() const { return MQGrid::mom_abs; }
 
-    void reset() {
-        std::fill(weights_.begin(), weights_.end(), 0.0);
-    }
-
+    void reset();
     void add(double mass, double q, double weight);
     void add(std::pair<size_t,size_t> indices, double weight);
-
     void fill(const Dilepton& dilepton);
     void fill(const DileptonList& dileptons);
     void fill(const HydroCell& cell);
@@ -42,7 +38,6 @@ class Spectrum {
     const std::vector<double>& data() const { return weights_; }
 
   private:
-
     size_t index(double mass, double q) const;
     size_t index(std::pair<size_t,size_t> indices) const;
 
@@ -56,7 +51,8 @@ namespace Spectra {
     void reset();
 
     const Spectrum& get(Source source);
-    void add(Source source, std::pair<size_t, size_t> indices, double weight);
+    void add(Source source, double m, double q, double weight);
+    void add(Source source, std::pair<size_t,size_t> indices, double weight);
     void fill(const Dilepton& dilepton);
     void fill(const DileptonList& dileptons);
     void fill(const HydroCell& cell);
