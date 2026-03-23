@@ -38,6 +38,10 @@ size_t Spectrum::index(double mass, double q) const {
 
 // Using std::pair avoids having two overloads (of weight_at) with
 // signatures that could be implicitly converted
+void Spectrum::add(std::pair<size_t,size_t> indices, double weight) {
+    const size_t idx = index(indices);
+    weights_[idx] += weight;
+}
 double Spectrum::weight_at(std::pair<size_t,size_t> indices) const {
     const auto [mass_index, q_index] = indices;
     return weights_[mass_index * MQGrid::qs.size() + q_index];
@@ -75,6 +79,11 @@ namespace Spectra {
     }
     const Spectrum& get(Source source) {
         return get_mutable(source);
+    }
+    void add(Source source, std::pair<size_t, size_t> indices, double weight) {
+        if (weight == 0.0)
+            return;
+        get_mutable(source).add(indices, weight);
     }
     void fill(const Dilepton& dilepton) {
         get_mutable(dilepton.source()).fill(dilepton);

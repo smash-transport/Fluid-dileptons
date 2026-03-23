@@ -31,6 +31,7 @@ class Spectrum {
     }
 
     void add(double mass, double q, double weight);
+    void add(std::pair<size_t,size_t> indices, double weight);
 
     void fill(const Dilepton& dilepton);
     void fill(const DileptonList& dileptons);
@@ -55,7 +56,7 @@ namespace Spectra {
     void reset();
 
     const Spectrum& get(Source source);
-
+    void add(Source source, std::pair<size_t, size_t> indices, double weight);
     void fill(const Dilepton& dilepton);
     void fill(const DileptonList& dileptons);
     void fill(const HydroCell& cell);

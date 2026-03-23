@@ -42,19 +42,29 @@ void HydroCell::radiate() {
     if (OutputMode::dilepton) {
         dileptons_.reserve(N_oversample * MQGrid::masses.size() * MQGrid::qs.size() * all_sources.size());
     }
+
     for (double m: MQGrid::masses) {
         if (m <= 0.0001) {
             continue;
         }
         for (double q: MQGrid::qs) {
             const Rates::Parameters dilepton_par{m, q, T_, nuc_dens_};
+            std::vector<double> source_weight;
+
+            // Precompute weights before oversampling
+            for (Source s: all_sources) {
+                double weight = four_volume_ * Rates::choose_source(s, dilepton_par);
+                weight *= (s == Source::QGP) ? QGP_fraction_ : (1 - QGP_fraction_);
+                source_weight.push_back(weight / N_oversample); // can be 0;
+            }
+
             for (int n_sample = 0; n_sample < N_oversample; ++n_sample) {
-                for (Source s: all_sources) {
-                    double weight = four_volume_ * Rates::choose_source(s, dilepton_par);
-                    weight *= (s == Source::QGP) ? QGP_fraction_ : (1 - QGP_fraction_);
+                for (size_t is = 0; is < all_sources.size(); ++is) {
+                    Source s = all_sources[is];
+                    const double weight = source_weight[is];
                     if (weight == 0)
                         continue;
-                    auto dil = Dilepton(m, q, s, this, weight / N_oversample);
+                    auto dil = Dilepton(m, q, s, this, weight);
                     // boost to lab frame and do acceptance
                     dil.set_momentum(dil.momentum().lorentz_boost(-landau_vel_));
                     if (!AcceptanceCutter::in_momentum_range(dil.momentum()))
