@@ -33,3 +33,8 @@ add_library(fluid_dileptons ${SOURCES} ${HEADERS})
 
 target_include_directories(fluid_dileptons PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_compile_features(fluid_dileptons PUBLIC cxx_std_17)
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(fluid_dileptons PUBLIC OpenMP::OpenMP_CXX)
+endif()

@@ -1,5 +1,5 @@
 masses: 0, 3, 0.01
-abs_momenta: 0, 3, 0.02
-oversample: 10
+abs_momenta: 0, 2, 0.02
+oversample: 50
 yrap_range: -1, 1
 suppress_output: none

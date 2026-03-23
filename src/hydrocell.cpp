@@ -3,6 +3,10 @@
 #include <utility>
 #include <vector>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "acceptance.h"
 #include "hydrocell.h"
 #include "spectrum.h"
@@ -41,48 +45,37 @@ void HydroCell::radiate() {
         return;
     }
 
-    const size_t n_masses = MQGrid::masses.size();
-    const size_t n_mom_abs = MQGrid::mom_abs.size();
-    const size_t n_bins = n_masses * n_mom_abs;
-    const size_t n_sources = all_sources.size();
-
     if (OutputMode::dilepton) {
-        dileptons_.reserve(N_oversample * n_bins * n_sources);
+        dileptons_.reserve(N_oversample * all_sources.size() *
+                             MQGrid::masses.size() * MQGrid::mom_abs.size());
     }
 
-    for (size_t i_m = 0; i_m < n_masses; ++i_m) {
-        for (size_t i_q = 0; i_q < n_mom_abs; ++i_q) {
-            const double m = MQGrid::masses[i_m];
-            if (m <= 0.0001) {
-                continue;
-            }
-            const double q = MQGrid::mom_abs[i_q];
-            const Rates::Parameters dilepton_par{m, q, T_, nuc_dens_};
-
-            // Precompute weights before oversampling
-            std::vector<double> source_weight(n_sources, 0.0);
-            for (size_t i_s = 0; i_s < n_sources; ++i_s) {
-                const Source s = all_sources[i_s];
+    #pragma omp parallel for collapse(3)
+    for (Source s: all_sources) {
+        for (double m: MQGrid::masses) {
+            for (double q: MQGrid::mom_abs) {
+                if (m <= 0.0001) {
+                    continue;
+                }
+                const Rates::Parameters dilepton_par{m, q, T_, nuc_dens_};
+                // Precompute weights before oversampling
                 double weight = four_volume_ * Rates::choose_source(s, dilepton_par);
                 weight *= (s == Source::QGP) ? QGP_fraction_ : (1 - QGP_fraction_);
-                source_weight[i_s] = weight / N_oversample; // can be 0
-            }
-
-            for (int n_sample = 0; n_sample < N_oversample; ++n_sample) {
-                for (size_t i_s = 0; i_s < n_sources; ++i_s) {
-                    const double weight = source_weight[i_s];
-                    if (weight == 0.0) {
-                        continue;
-                    }
-                    auto dil = Dilepton(m, q, all_sources[i_s], this, weight);
+                if (weight == 0.0) {
+                    continue;
+                }
+                for (int n_sample = 0; n_sample < N_oversample; ++n_sample) {
+                    auto dil = Dilepton(m, q, s, this, weight);
                     dil.set_momentum(dil.momentum().lorentz_boost(-landau_vel_));
                     if (!AcceptanceCutter::in_momentum_range(dil.momentum()))
                         continue;
                     // TODO: acceptance cut on single lepton if needed
-                    if (OutputMode::dilepton)
+                    if (OutputMode::dilepton) {
+                        #pragma omp critical
                         dileptons_.push_back(dil);
+                    }
                     if (OutputMode::spectra)
-                        Spectra::add(all_sources[i_s], {i_m, i_q}, weight);
+                        Spectra::add(s, m, q, weight);
                 }
             }
         }
