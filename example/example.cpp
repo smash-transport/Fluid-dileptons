@@ -3,7 +3,7 @@
 #include "fluiddileptons.h"
 
 int main (int argc, char *argv[]) {
-    const double T = 0.14, muB=0.2, lambdaQGP=0.2, fourVolume=0.5; // fake cell parameters
+    const double T = 0.05, muB=0.2, lambdaQGP=0.2, fourVolume=0.5; // fake cell parameters
     FluidDileptons::FourVector pos = {10,0,0,3}; // fake cell 4-position
     FluidDileptons::ThreeVector vel = {0,0.2,0}; // fake cell Landau velocity
 

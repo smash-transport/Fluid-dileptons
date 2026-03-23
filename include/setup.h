@@ -25,6 +25,12 @@ void output_cell_to_file(const std::string& filepath, const HydroCell& cell);
 
 void notImplemented();
 bool setup(const std::string& filepath);
-void default_setup();
+bool default_setup();
+
+// This belongs here instead of output.cpp because it affects what is calculated throughout the run.
+// The user still needs to call the specific output functions.
+namespace OutputMode {
+    extern bool spectra, dilepton;
+};
 
 }

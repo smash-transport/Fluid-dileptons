@@ -10,6 +10,8 @@
 
 namespace FluidDileptons {
 
+bool OutputMode::spectra = true;
+bool OutputMode::dilepton = true;
 int N_oversample = 1;
 
 void notImplemented() {
@@ -48,6 +50,20 @@ static void parse_range_step(const std::string& key, const std::string& value,
         std::cout << "Set " << key << ": [" << min << ", " << max << "] with step " << step << "\n";
     } else {
         std::cerr << "Could not parse " << key << ": " << value << "\n";
+    }
+}
+
+static void suppress_output_mode(const std::string& mode) {
+    if (mode == "spectra") {
+        OutputMode::spectra = false;
+        std::cout << "Disabled spectra output mode\n";
+    } else if (mode == "dilepton") {
+        OutputMode::dilepton = false;
+        std::cout << "Disabled dilepton output mode\n";
+    } else if (mode == "none") {
+        std::cout << "All output modes enabled\n";
+    } else {
+        std::cerr << "Unknown output mode: " << mode << "\n";
     }
 }
 
@@ -101,6 +117,12 @@ bool setup(const std::string& filepath) {
             } else {
                 std::cerr << "Could not parse N_oversample: " << value << "\n";
             }
+        } else if (key == "suppress_output") {
+            std::stringstream ss(value);
+            std::string mode;
+            while (ss >> mode) {
+                suppress_output_mode(mode);
+            }
         } else {
             throw std::invalid_argument(key + " is not a configuration key for dileptons.\n");
         }
@@ -116,7 +138,7 @@ bool setup(const std::string& filepath) {
     return true;
 }
 
-void default_setup() {
+bool default_setup() {
     constexpr double large_cut = 100;
 
     MQGrid::set_masses(0.0, 2, 0.01);
@@ -128,7 +150,11 @@ void default_setup() {
     AcceptanceCutter::set_pT_range(0, large_cut);
     AcceptanceCutter::set_yrap_range(-large_cut, large_cut);
 
+    OutputMode::spectra = true;
+    OutputMode::dilepton = true;
+
     N_oversample = 1;
+    return true;
 }
 
 } // namespace FluidDileptons

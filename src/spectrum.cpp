@@ -12,15 +12,13 @@ Spectrum::Spectrum(Source source) :
 }
 
 void Spectrum::fill(const Dilepton& dilepton) {
-    if (dilepton.source() != source_) {
+    if (dilepton.source() != source_)
         return;
-    }
     add(dilepton.m(), dilepton.q(), dilepton.weight());
 }
 void Spectrum::fill(const DileptonList& dileptons) {
-    for (const Dilepton& d : dileptons) {
+    for (const Dilepton& d : dileptons)
         fill(d);
-    }
 }
 void Spectrum::fill(const HydroCell& cell) {
     fill(cell.dileptons());
@@ -57,47 +55,37 @@ namespace Spectra {
         // Hidden to forbid direct access, but it can be exposed if need be
         Spectrum& get_mutable(Source source) {
             auto it = all_spectra.find(source);
-            if (it == all_spectra.end()) {
+            if (it == all_spectra.end())
                 throw std::invalid_argument("Unknown dilepton source.");
-            }
             return it->second;
         }
     }
 
     void initialize() {
-        if (initialized) {
+        if (initialized)
             throw std::runtime_error("Spectra already initialized.");
-        }
-        for (Source s : all_sources) {
+        for (Source s : all_sources)
             all_spectra.emplace(s, Spectrum(s));
-        }
         initialized = true;
     }
-
     void reset() {
-        for (auto& pair : all_spectra) {
+        for (auto& pair : all_spectra)
             pair.second.reset();
-        }
         initialized = false;
     }
-
     const Spectrum& get(Source source) {
         return get_mutable(source);
     }
-
     void fill(const Dilepton& dilepton) {
         get_mutable(dilepton.source()).fill(dilepton);
     }
-
     void fill(const DileptonList& dileptons) {
-        for (const Dilepton& d : dileptons) {
+        for (const Dilepton& d : dileptons)
             fill(d);
-        }
     }
     void fill(const HydroCell& cell) {
         fill(cell.dileptons());
     }
-
 } // namespace Spectra
 
 } // namespace FluidDileptons

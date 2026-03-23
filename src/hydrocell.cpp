@@ -39,7 +39,9 @@ void HydroCell::radiate() {
         return;
     }
 
-    dileptons_.reserve(N_oversample * MQGrid::masses.size() * MQGrid::qs.size() * all_sources.size());
+    if (OutputMode::dilepton) {
+        dileptons_.reserve(N_oversample * MQGrid::masses.size() * MQGrid::qs.size() * all_sources.size());
+    }
     for (double m: MQGrid::masses) {
         if (m <= 0.0001) {
             continue;
@@ -58,8 +60,12 @@ void HydroCell::radiate() {
                     if (!AcceptanceCutter::in_momentum_range(dil.momentum()))
                         continue;
                     // TODO: acceptance cut on single lepton if needed
-                    dileptons_.push_back(dil);
-                    Spectra::fill(dil);
+                    if (OutputMode::dilepton) {
+                        dileptons_.push_back(dil);
+                    }
+                    if (OutputMode::spectra) {
+                        Spectra::fill(dil);
+                    }
                 }
             }
         }

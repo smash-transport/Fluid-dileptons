@@ -25,14 +25,19 @@ Takes in pairs of keys and values, parsed by a `:` character. The available keys
 
 | Key           |    Type    |   Default    | Description                          |
 | :------------ | :--------: | :----------: | :----------------------------------: |
-| `masses`      | 3 doubles  | `0, 2, 0.01` | dilepton invariant mass grid         |
-| `abs_momenta` | 3 doubles  | `0, 3, 0.05` | dilepton absolute momentum grid      |
-| `x_range`     | 2 doubles  |    no cut    | x-position acceptance                |
-| `y_range`     | 2 doubles  |    no cut    | y-position acceptance                |
-| `eta_range`   | 2 doubles  |    no cut    | spatial rapidity acceptance          |
-| `pT_range`    | 2 doubles  |    no cut    | transverse momentum acceptance       |
-| `yrap_range`  | 2 doubles  |    no cut    | rapidity acceptance                  |
-| `oversample`  | `int > 0`  |     `1`      | number of oversampled dileptons      |
+| `masses`          | 3 doubles  | `0, 2, 0.01` | dilepton invariant mass grid         |
+| `abs_momenta`     | 3 doubles  | `0, 3, 0.05` | dilepton absolute momentum grid      |
+| `x_range`         | 2 doubles  |    no cut    | x-position acceptance                |
+| `y_range`         | 2 doubles  |    no cut    | y-position acceptance                |
+| `eta_range`       | 2 doubles  |    no cut    | spatial rapidity acceptance          |
+| `pT_range`        | 2 doubles  |    no cut    | transverse momentum acceptance       |
+| `yrap_range`      | 2 doubles  |    no cut    | rapidity acceptance                  |
+| `oversample`      | `int > 0`  |     `1`      | number of oversampled dileptons      |
+| `suppress_output` |   string   |    `none`    | what to NOT calculate: `dilepton`, `spectra`, or `none` |
 
 
 The grid values (3 doubles) are ordered are (min, max, step), and the range values (2 doubles) are ordered (min, max).
+
+## Output
+
+The code can output either a file with dileptons (mass, q, weight, source), or a file with the spectra histogrammed in mass and momentum, with block for each source.
