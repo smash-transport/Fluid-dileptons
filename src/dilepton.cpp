@@ -59,6 +59,9 @@ namespace Rates {
 
     double ImD_latQGP(const Parameters& par) {
         const double m = par.m, q = par.q, T = par.T;
+        // Calculation not valid below transition region (even there it's doubtful)
+        if (T < 0.12)
+            return 0;
         const double fhat = fhat_2(par);
         const double Q_total = Qlat_total(par, false);
         // multiply by 4pi to match with fig 3 of arXiv:1304.2309
@@ -111,10 +114,12 @@ namespace Rates {
         return (mee/q0) * dR_d4q_coef;
     }
 
+    // In principle we could compute coef outside the function, but the performance is not
+    // much worse, and this way we can parallelize the source loop together with m and q
     double choose_source(const Source s, const Parameters& par) {
-        const double m = par.m, q = par.q, T = par.T;
+        const double frac = par.QGP_fraction;
         const double coef = dR_dMd3q_without_ImD(par);
-
+        double rate = 0;
 /*
         static bool warned_vacuum = false;
         if (!warned_vacuum && (s == Source::rho || s == Source::omega || s == Source::phi)) {
@@ -125,19 +130,21 @@ namespace Rates {
 */
 
         if (s == Source::QGP) {
-            return coef * ImD_latQGP(par);
-        } else if(s == Source::multipi) {
-            return coef * ImD_multipi(par);
-        } else if (s == Source::rho) {
-            return coef * ImD_rho_vacuum(par);
-        } else if (s == Source::omega) {
-            return coef * ImD_omega_vacuum(par);
-        } else if (s == Source::phi) {
-            return coef * ImD_phi_vacuum(par);
-        } else {
-            notImplemented();
-            return 0;
+            rate = frac * coef * ImD_latQGP(par);
+        } else if (frac < 1) {
+            if (s == Source::multipi) {
+                rate =  (1-frac) * coef * ImD_multipi(par);
+            } else if (s == Source::rho) {
+                rate =  (1-frac) * coef * ImD_rho_vacuum(par);
+            } else if (s == Source::omega) {
+                rate =  (1-frac) * coef * ImD_omega_vacuum(par);
+            } else if (s == Source::phi) {
+                rate =  (1-frac) * coef * ImD_phi_vacuum(par);
+            } else {
+                notImplemented();
+            }
         }
+        return rate;
     }
 
     /*

@@ -16,10 +16,17 @@ namespace FluidDileptons {
 double grand_canonical_density(double T, double mu, double mass, double spin, int degeneracy) {
     const int stat = static_cast<int>(round(2. * spin)) & 1 ? -1 : 1;
     double density = 0;
+    if (mass / T > 10) {
+        // Approximation for low T
+        density = degeneracy * (2 * spin + 1) *
+                   std::pow(mass * T / (2 * M_PI), 1.5) *
+                    std::exp(-mass / T) * std::cosh(mu / T);
+        return density;
+    }
     for (int i = 1; i < 11; i++) {
         density += std::pow(stat, i + 1) *
                     std::cyl_bessel_k(2, i * mass / T) *
-                    (std::exp(i * mu / T) + std::exp(-i * mu / T)) / i;
+                    2 * std::cosh(mu / T) / i;
     }
     density *= degeneracy * (2 * spin + 1) * mass * mass * T /
                     (2 * M_PI * M_PI * std::pow(hbarc, -3));
@@ -57,10 +64,8 @@ void HydroCell::radiate() {
                 if (m <= 0.0001) {
                     continue;
                 }
-                const Rates::Parameters dilepton_par{m, q, T_, nuc_dens_};
-                // Precompute weights before oversampling
-                double weight = four_volume_ * Rates::choose_source(s, dilepton_par);
-                weight *= (s == Source::QGP) ? QGP_fraction_ : (1 - QGP_fraction_);
+                const Rates::Parameters dilepton_par{m, q, T_, nuc_dens_, QGP_fraction_};
+                const double weight = four_volume_ * Rates::choose_source(s, dilepton_par);
                 if (weight == 0.0) {
                     continue;
                 }

@@ -61,7 +61,7 @@ using DileptonList = build_vector_<Dilepton>;
 
 namespace Rates {
     struct Parameters {
-        double m, q, T, nuc_dens;
+        double m, q, T, nuc_dens, QGP_fraction;
     };
 
     // used for cross-check

@@ -35,7 +35,7 @@ static void parse_range(const std::string& key, const std::string& value,
     std::stringstream ss(value);
     if (ss >> min >> max) {
         setter(min, max);
-        std::cout << "Set " << key << ": [" << min << ", " << max << "]\n";
+        std::cout << key << ": [" << min << ", " << max << "]\n";
     } else {
         std::cerr << "Could not parse " << key << ": " << value << "\n";
     }
@@ -47,7 +47,7 @@ static void parse_range_step(const std::string& key, const std::string& value,
     std::stringstream ss(value);
     if (ss >> min >> max >> step) {
         setter(min, max, step, true);
-        std::cout << "Set " << key << ": [" << min << ", " << max << "] with step " << step << "\n";
+        std::cout << key << ": [" << min << ", " << max << "] with step " << step << "\n";
     } else {
         std::cerr << "Could not parse " << key << ": " << value << "\n";
     }
@@ -73,10 +73,11 @@ bool setup(const std::string& filepath) {
     std::ostringstream oss_err;
 
     if (!config_file.is_open()) {
-        throw std::invalid_argument("Could not open config file.\n");
+        throw std::invalid_argument("Could not open configuration file for fluid dileptons.\n");
     }
 
     std::string line;
+    std::cout << "======== Reading fluid-dileptons configuration =========\n";
     while (std::getline(config_file, line)) {
         line = trim(line);
         if (line.empty() || line[0] == '#') {
@@ -113,9 +114,9 @@ bool setup(const std::string& filepath) {
             int N;
             if (ss >> N) {
                 N_oversample = N;
-                std::cout << "Set N_oversample: " << N_oversample << "\n";
+                std::cout << "N_oversample: " << N_oversample << "\n";
             } else {
-                std::cerr << "Could not parse N_oversample: " << value << "\n";
+                oss_err << "Could not parse N_oversample: " << value << "\n";
             }
         } else if (key == "suppress_output") {
             std::stringstream ss(value);
@@ -124,17 +125,20 @@ bool setup(const std::string& filepath) {
                 suppress_output_mode(mode);
             }
         } else {
-            throw std::invalid_argument(key + " is not a configuration key for dileptons.\n");
+            oss_err << key << " is not a configuration key for dileptons.\n";
         }
     }
-
+    if (!oss_err.str().empty()) {
+        std::cerr << "Errors while parsing fluid-dileptons configuration:\n" << oss_err.str();
+        return false;
+    }
     // Make this a config key?
     Spectra::initialize();
 
     config_file.close();
     // todo: validate values?
 
-    std::cout << "Configuration loaded successfully\n";
+    std::cout << "======== Fluid-dileptons configuration read successfully ========\n";
     return true;
 }
 
