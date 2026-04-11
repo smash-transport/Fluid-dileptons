@@ -2,4 +2,6 @@ masses: 0, 3, 0.01
 abs_momenta: 0, 2, 0.02
 oversample: 50
 yrap_range: -1, 1
+rho_omega_table_path: ../old/diltables/rawa/ImDrho-or-f.dat
+phi_table_path: ../old/diltables/rawa/ImDrho-phi.dat
 suppress_output: none

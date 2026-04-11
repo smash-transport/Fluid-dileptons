@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <random>
+#include <string>
 
 namespace FluidDileptons {
 
@@ -34,7 +35,13 @@ namespace OutputMode {
 };
 
 namespace SpectralFunctionMode {
-    extern bool vacuum_vector_mesons;
+    extern bool vacuum_rho_omega;
+    extern bool vacuum_phi;
+}
+
+namespace VectorMesonTables {
+    extern std::string rho_omega_path;
+    extern std::string phi_path;
 }
 
 }

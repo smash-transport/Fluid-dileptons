@@ -33,7 +33,8 @@ Takes in pairs of keys and values, parsed by a `:` character. The available keys
 | `pT_range`        | 2 doubles  |    no cut    | transverse momentum acceptance       |
 | `yrap_range`      | 2 doubles  |    no cut    | rapidity acceptance                  |
 | `oversample`      | `int > 0`  |     `1`      | number of oversampled dileptons      |
-| `vector_mesons`   |   string   |   `medium`   | rho/omega/phi: `medium` or `vacuum`  |
+| `rho_omega_table_path` | string | bundled `old/diltables/rawa/ImDrho-or-f.dat` | path to the rho/omega table file, or `vacuum` |
+| `phi_table_path` | string | bundled `old/diltables/rawa/ImDrho-phi.dat` | path to the phi table file, or `vacuum` |
 | `suppress_output` |   string   |    `none`    | what to NOT calculate: `dilepton`, `spectra`, or `none` |
 
 

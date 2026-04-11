@@ -25,15 +25,13 @@ namespace Rates {
 
         const VectorMesonTable& rho_omega_table() {
             static const VectorMesonTable table = load_rho_omega_table(
-                (std::filesystem::path(FLUID_DILEPTONS_SOURCE_DIR) /
-                 "old" / "diltables" / "rawa" / "ImDrho-or-f.dat").string());
+                VectorMesonTables::rho_omega_path);
             return table;
         }
 
         const VectorMesonTable& phi_table() {
             static const VectorMesonTable table = load_phi_table(
-                (std::filesystem::path(FLUID_DILEPTONS_SOURCE_DIR) /
-                 "old" / "diltables" / "rawa" / "ImDrho-phi.dat").string());
+                VectorMesonTables::phi_path);
             return table;
         }
 
@@ -199,7 +197,7 @@ namespace Rates {
             return grid;
         }
 
-        if (SpectralFunctionMode::vacuum_vector_mesons) {
+        if (SpectralFunctionMode::vacuum_rho_omega && SpectralFunctionMode::vacuum_phi) {
             for (std::size_t mass_index = 0; mass_index < MQGrid::masses.size(); ++mass_index) {
                 const double mass = MQGrid::masses[mass_index];
                 if (mass <= 0.0001) {
@@ -221,10 +219,14 @@ namespace Rates {
             return grid;
         }
 
-        const VectorMesonCellContext rho_omega_context =
-            rho_omega_table().make_cell_context(temperature, nucleon_density, 0.0, 0.0);
-        const VectorMesonCellContext phi_context =
-            phi_table().make_cell_context(temperature, nucleon_density, 0.0, 0.0);
+        VectorMesonCellContext rho_omega_context{};
+        VectorMesonCellContext phi_context{};
+        if (!SpectralFunctionMode::vacuum_rho_omega) {
+            rho_omega_context = rho_omega_table().make_cell_context(temperature, nucleon_density, 0.0, 0.0);
+        }
+        if (!SpectralFunctionMode::vacuum_phi) {
+            phi_context = phi_table().make_cell_context(temperature, nucleon_density, 0.0, 0.0);
+        }
 
         for (std::size_t mass_index = 0; mass_index < MQGrid::masses.size(); ++mass_index) {
             const double mass = MQGrid::masses[mass_index];
@@ -243,15 +245,25 @@ namespace Rates {
                 }
 
                 const std::size_t index = mq_index(mass_index, q_index);
-                grid.rho[index] = coef * rho_omega_table().interpolate_fast(
-                    rho_channel(), rho_omega_context,
-                    rho_omega_grid_cache().momenta[q_index], rho_mass_bracket);
-                grid.omega[index] = coef * rho_omega_table().interpolate_fast(
-                    omega_channel(), rho_omega_context,
-                    rho_omega_grid_cache().momenta[q_index], rho_mass_bracket);
-                grid.phi[index] = coef * phi_table().interpolate_fast(
-                    phi_channel(), phi_context,
-                    phi_grid_cache().momenta[q_index], phi_mass_bracket);
+                if (SpectralFunctionMode::vacuum_rho_omega) {
+                    grid.rho[index] = coef * ImD_rho_vacuum(par);
+                    grid.omega[index] = coef * ImD_omega_vacuum(par);
+                } else {
+                    grid.rho[index] = coef * rho_omega_table().interpolate_fast(
+                        rho_channel(), rho_omega_context,
+                        rho_omega_grid_cache().momenta[q_index], rho_mass_bracket);
+                    grid.omega[index] = coef * rho_omega_table().interpolate_fast(
+                        omega_channel(), rho_omega_context,
+                        rho_omega_grid_cache().momenta[q_index], rho_mass_bracket);
+                }
+
+                if (SpectralFunctionMode::vacuum_phi) {
+                    grid.phi[index] = coef * ImD_phi_vacuum(par);
+                } else {
+                    grid.phi[index] = coef * phi_table().interpolate_fast(
+                        phi_channel(), phi_context,
+                        phi_grid_cache().momenta[q_index], phi_mass_bracket);
+                }
             }
         }
 
@@ -286,15 +298,15 @@ namespace Rates {
                 rate =  (1-frac) * coef * ImD_multipi(par);
             } else if (s == Source::rho) {
                 rate =  (1-frac) * coef *
-                        (SpectralFunctionMode::vacuum_vector_mesons ?
+                        (SpectralFunctionMode::vacuum_rho_omega ?
                             ImD_rho_vacuum(par) : ImD_rho_medium(par));
             } else if (s == Source::omega) {
                 rate =  (1-frac) * coef *
-                        (SpectralFunctionMode::vacuum_vector_mesons ?
+                        (SpectralFunctionMode::vacuum_rho_omega ?
                             ImD_omega_vacuum(par) : ImD_omega_medium(par));
             } else if (s == Source::phi) {
                 rate =  (1-frac) * coef *
-                        (SpectralFunctionMode::vacuum_vector_mesons ?
+                        (SpectralFunctionMode::vacuum_phi ?
                             ImD_phi_vacuum(par) : ImD_phi_medium(par));
             } else {
                 notImplemented();

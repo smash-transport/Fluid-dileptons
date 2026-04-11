@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <filesystem>
 
 #include "acceptance.h"
 #include "hydrocell.h"
@@ -12,7 +13,10 @@ namespace FluidDileptons {
 
 bool OutputMode::spectra = true;
 bool OutputMode::dilepton = true;
-bool SpectralFunctionMode::vacuum_vector_mesons = false;
+bool SpectralFunctionMode::vacuum_rho_omega = false;
+bool SpectralFunctionMode::vacuum_phi = false;
+std::string VectorMesonTables::rho_omega_path;
+std::string VectorMesonTables::phi_path;
 int N_oversample = 1;
 
 void notImplemented() {
@@ -68,23 +72,51 @@ static void suppress_output_mode(const std::string& mode) {
     }
 }
 
-static void set_vector_mesons(const std::string& value,
-                                               std::ostringstream& oss_err) {
-    if (value == "medium" || value == "in-medium" || value == "in_medium") {
-        SpectralFunctionMode::vacuum_vector_mesons = false;
-        std::cout << "vector_mesons: medium\n";
-    } else if (value == "vacuum") {
-        SpectralFunctionMode::vacuum_vector_mesons = true;
-        std::cout << "vector_mesons: vacuum\n";
-    } else {
-        oss_err << "Vector_mesons should be either 'vacuum' or 'medium'\n";
+static void set_vector_meson_file_path(const std::string& key,
+                                       const std::string& value,
+                                       const std::filesystem::path& config_path,
+                                       bool& vacuum_flag,
+                                       std::string& target_path,
+                                       std::ostringstream& oss_err) {
+    if (value == "vacuum") {
+        vacuum_flag = true;
+        std::cout << key << ": vacuum\n";
+        return;
     }
+
+    std::filesystem::path table_path = value;
+    if (table_path.empty()) {
+        oss_err << key << " cannot be empty\n";
+        return;
+    }
+    if (table_path.is_relative()) {
+        table_path = config_path.parent_path() / table_path;
+    }
+    if (!std::filesystem::exists(table_path)) {
+        oss_err << key << " does not exist: " << table_path.string() << "\n";
+        return;
+    }
+
+    vacuum_flag = false;
+    target_path = std::filesystem::weakly_canonical(table_path).string();
+    std::cout << key << ": " << target_path << "\n";
+}
+
+static std::filesystem::path canonical_or_self(const std::string& filepath) {
+    const std::filesystem::path path = filepath;
+    std::error_code error;
+    const auto canonical = std::filesystem::weakly_canonical(path, error);
+    if (error) {
+        return path;
+    }
+    return canonical;
 }
 
 bool setup(const std::string& filepath) {
     default_setup();
     std::ifstream config_file(filepath);
     std::ostringstream oss_err;
+    const std::filesystem::path config_path = canonical_or_self(filepath);
 
     if (!config_file.is_open()) {
         throw std::invalid_argument("Could not open configuration file for fluid dileptons.\n");
@@ -138,8 +170,16 @@ bool setup(const std::string& filepath) {
             while (ss >> mode) {
                 suppress_output_mode(mode);
             }
-        } else if (key == "vector_mesons") {
-            set_vector_mesons(value, oss_err);
+        } else if (key == "rho_omega_table_path") {
+            set_vector_meson_file_path(key, value, config_path,
+                                       SpectralFunctionMode::vacuum_rho_omega,
+                                       VectorMesonTables::rho_omega_path,
+                                       oss_err);
+        } else if (key == "phi_table_path") {
+            set_vector_meson_file_path(key, value, config_path,
+                                       SpectralFunctionMode::vacuum_phi,
+                                       VectorMesonTables::phi_path,
+                                       oss_err);
         } else {
             oss_err << key << " is not a configuration key for dileptons.\n";
         }
@@ -172,7 +212,14 @@ bool default_setup() {
 
     OutputMode::spectra = true;
     OutputMode::dilepton = true;
-    SpectralFunctionMode::vacuum_vector_mesons = false;
+    SpectralFunctionMode::vacuum_rho_omega = false;
+    SpectralFunctionMode::vacuum_phi = false;
+    VectorMesonTables::rho_omega_path = (std::filesystem::path(FLUID_DILEPTONS_SOURCE_DIR) /
+                                         "old" / "diltables" / "rawa" /
+                                         "ImDrho-or-f.dat").string();
+    VectorMesonTables::phi_path = (std::filesystem::path(FLUID_DILEPTONS_SOURCE_DIR) /
+                                   "old" / "diltables" / "rawa" /
+                                   "ImDrho-phi.dat").string();
 
     N_oversample = 1;
     return true;
