@@ -79,19 +79,19 @@ namespace Rates {
         constexpr double M0 = 0.778;
         constexpr double G0 = 0.149;
         constexpr double m_thr = 2*mass_electron;
-        return breit_wigner(par.m, M0, G0, m_thr)/(4*M_PI*M_PI);
+        return breit_wigner(par.m, M0, G0, m_thr);
     }
     double ImD_omega_vacuum(const Parameters& par) {
         constexpr double M0 = 0.783;
         constexpr double G0 = 0.00849;
         constexpr double m_thr = 2*mass_electron;
-        return breit_wigner(par.m, M0, G0, m_thr)/(4*M_PI*M_PI);
+        return breit_wigner(par.m, M0, G0, m_thr);
     }
     double ImD_phi_vacuum(const Parameters& par) {
         constexpr double M0 = 1.019;
         constexpr double G0 = 0.00426;
         constexpr double m_thr = 2*mass_electron;
-        return breit_wigner(par.m, M0, G0, m_thr)/(4*M_PI*M_PI);
+        return breit_wigner(par.m, M0, G0, m_thr);
     }
 
     double ImD_rho_medium(const Parameters& par) {
