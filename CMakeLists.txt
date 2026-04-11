@@ -13,6 +13,7 @@ set(SOURCES
     src/fourpion_mix.cpp
     src/grid.cpp
     src/output.cpp
+    src/VMtables.cpp
     src/hydrocell.cpp
     src/setup.cpp
     src/spectrum.cpp
@@ -21,6 +22,7 @@ set(SOURCES
 # Headers
 set(HEADERS
     include/acceptance.h
+    include/VMtables.h
     include/dilepton.h
     include/hydrocell.h
     include/output.h
@@ -33,6 +35,7 @@ add_library(fluid_dileptons ${SOURCES} ${HEADERS})
 
 target_include_directories(fluid_dileptons PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_compile_features(fluid_dileptons PUBLIC cxx_std_17)
+target_compile_definitions(fluid_dileptons PUBLIC FLUID_DILEPTONS_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)

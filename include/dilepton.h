@@ -64,14 +64,28 @@ namespace Rates {
         double m, q, T, nuc_dens, QGP_fraction;
     };
 
+    struct VectorMesonRateGrid {
+        std::size_t q_bins = 0;
+        std::vector<double> rho;
+        std::vector<double> omega;
+        std::vector<double> phi;
+
+        double at(Source source, std::size_t mass_index, std::size_t q_index) const;
+    };
+
     // used for cross-check
     double ImD_pQGP(const Parameters& par);
     double ImD_latQGP(const Parameters& par);
     // used for cross-check but leads to a different result from the paper
     double ImD_rho_vacuum(const Parameters& par);
     double ImD_rho_medium(const Parameters& par);
+    double ImD_omega_medium(const Parameters& par);
+    double ImD_phi_medium(const Parameters& par);
 
     double ImD_multipi(const Parameters& par);
+    VectorMesonRateGrid precompute_vector_meson_rate_grid(double temperature,
+                                                          double nucleon_density,
+                                                          double qgp_fraction);
 
     double dR_dMd3q_without_ImD(const Parameters& par);
     double choose_source(const Source s,const Parameters& par);

@@ -57,15 +57,26 @@ void HydroCell::radiate() {
                              MQGrid::masses.size() * MQGrid::mom_abs.size());
     }
 
+    const Rates::VectorMesonRateGrid vector_meson_rates =
+        Rates::precompute_vector_meson_rate_grid(T_, nuc_dens_, QGP_fraction_);
+
     #pragma omp parallel for collapse(3)
-    for (Source s: all_sources) {
-        for (double m: MQGrid::masses) {
-            for (double q: MQGrid::mom_abs) {
+    for (std::size_t source_index = 0; source_index < all_sources.size(); ++source_index) {
+        for (std::size_t mass_index = 0; mass_index < MQGrid::masses.size(); ++mass_index) {
+            for (std::size_t q_index = 0; q_index < MQGrid::mom_abs.size(); ++q_index) {
+                const Source s = all_sources[source_index];
+                const double m = MQGrid::masses[mass_index];
+                const double q = MQGrid::mom_abs[q_index];
                 if (m <= 0.0001) {
                     continue;
                 }
-                const Rates::Parameters dilepton_par{m, q, T_, nuc_dens_, QGP_fraction_};
-                const double weight = four_volume_ * Rates::choose_source(s, dilepton_par);
+                double weight = 0.0;
+                if (s == Source::rho || s == Source::omega || s == Source::phi) {
+                    weight = four_volume_ * vector_meson_rates.at(s, mass_index, q_index);
+                } else {
+                    const Rates::Parameters dilepton_par{m, q, T_, nuc_dens_, QGP_fraction_};
+                    weight = four_volume_ * Rates::choose_source(s, dilepton_par);
+                }
                 if (weight == 0.0) {
                     continue;
                 }

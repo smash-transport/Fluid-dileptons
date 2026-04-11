@@ -1,6 +1,7 @@
 #pragma once
 
 #include "acceptance.h"
+#include "VMtables.h"
 #include "dilepton.h"
 #include "hydrocell.h"
 #include "output.h"

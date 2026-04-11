@@ -33,4 +33,8 @@ namespace OutputMode {
     extern bool spectra, dilepton;
 };
 
+namespace SpectralFunctionMode {
+    extern bool vacuum_vector_mesons;
+}
+
 }

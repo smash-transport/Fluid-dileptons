@@ -1,8 +1,11 @@
 #include <iostream>
 #include <cmath>
+#include <filesystem>
 
 #include "dilepton.h"
 #include "setup.h"
+#include "spectrum.h"
+#include "VMtables.h"
 
 namespace FluidDileptons {
 
@@ -13,6 +16,80 @@ std::pair<FourVector, FourVector> Dilepton::single_lepton() const {
 }
 
 namespace Rates {
+
+    namespace {
+
+        std::size_t mq_index(std::size_t mass_index, std::size_t q_index) {
+            return mass_index * MQGrid::mom_abs.size() + q_index;
+        }
+
+        const VectorMesonTable& rho_omega_table() {
+            static const VectorMesonTable table = load_rho_omega_table(
+                (std::filesystem::path(FLUID_DILEPTONS_SOURCE_DIR) /
+                 "old" / "diltables" / "rawa" / "ImDrho-or-f.dat").string());
+            return table;
+        }
+
+        const VectorMesonTable& phi_table() {
+            static const VectorMesonTable table = load_phi_table(
+                (std::filesystem::path(FLUID_DILEPTONS_SOURCE_DIR) /
+                 "old" / "diltables" / "rawa" / "ImDrho-phi.dat").string());
+            return table;
+        }
+
+        const VectorMesonGridCache& rho_omega_grid_cache() {
+            static const VectorMesonGridCache cache =
+                rho_omega_table().make_grid_cache(MQGrid::mom_abs, MQGrid::masses);
+            return cache;
+        }
+
+        const VectorMesonGridCache& phi_grid_cache() {
+            static const VectorMesonGridCache cache =
+                phi_table().make_grid_cache(MQGrid::mom_abs, MQGrid::masses);
+            return cache;
+        }
+
+        std::size_t rho_channel() {
+            static const std::size_t channel = rho_omega_table().channel_index("rho");
+            return channel;
+        }
+
+        std::size_t omega_channel() {
+            static const std::size_t channel = rho_omega_table().channel_index("omega");
+            return channel;
+        }
+
+        std::size_t phi_channel() {
+            static const std::size_t channel = phi_table().channel_index("phi");
+            return channel;
+        }
+
+        double interpolate_vector_meson(const VectorMesonTable& table,
+                                        std::size_t channel,
+                                        const Parameters& par,
+                                        double pion_chemical_potential = 0.0,
+                                        double kaon_chemical_potential = 0.0) {
+            return table.interpolate(channel, par.T, par.nuc_dens, pion_chemical_potential,
+                                     kaon_chemical_potential, par.q, par.m);
+        }
+
+    } // namespace
+
+    double VectorMesonRateGrid::at(Source source,
+                                   std::size_t mass_index,
+                                   std::size_t q_index) const {
+        const std::size_t index = mass_index * q_bins + q_index;
+        if (source == Source::rho) {
+            return rho[index];
+        }
+        if (source == Source::omega) {
+            return omega[index];
+        }
+        if (source == Source::phi) {
+            return phi[index];
+        }
+        return 0.0;
+    }
 
     static double dilepton_phasespace(double mee) {
         const double ratio_sqr = mass_electron * mass_electron / (mee * mee);
@@ -79,24 +156,106 @@ namespace Rates {
         constexpr double M0 = 0.778;
         constexpr double G0 = 0.149;
         constexpr double m_thr = 2*mass_electron;
-        return breit_wigner(par.m, M0, G0, m_thr)/(4*M_PI*M_PI);
+        return breit_wigner(par.m, M0, G0, m_thr);
     }
     double ImD_omega_vacuum(const Parameters& par) {
         constexpr double M0 = 0.783;
         constexpr double G0 = 0.00849;
         constexpr double m_thr = 2*mass_electron;
-        return breit_wigner(par.m, M0, G0, m_thr)/(4*M_PI*M_PI);
+        return breit_wigner(par.m, M0, G0, m_thr);
     }
     double ImD_phi_vacuum(const Parameters& par) {
         constexpr double M0 = 1.019;
         constexpr double G0 = 0.00426;
         constexpr double m_thr = 2*mass_electron;
-        return breit_wigner(par.m, M0, G0, m_thr)/(4*M_PI*M_PI);
+        return breit_wigner(par.m, M0, G0, m_thr);
     }
 
     double ImD_rho_medium(const Parameters& par) {
-        std::cout << "Not implemented yet!";
-        return 0;
+        return interpolate_vector_meson(rho_omega_table(), rho_channel(), par);
+    }
+
+    double ImD_omega_medium(const Parameters& par) {
+        return interpolate_vector_meson(rho_omega_table(), omega_channel(), par);
+    }
+
+    double ImD_phi_medium(const Parameters& par) {
+        return interpolate_vector_meson(phi_table(), phi_channel(), par);
+    }
+
+    VectorMesonRateGrid precompute_vector_meson_rate_grid(double temperature,
+                                                          double nucleon_density,
+                                                          double qgp_fraction) {
+        VectorMesonRateGrid grid;
+        grid.q_bins = MQGrid::mom_abs.size();
+
+        const std::size_t total_size = MQGrid::masses.size() * MQGrid::mom_abs.size();
+        grid.rho.assign(total_size, 0.0);
+        grid.omega.assign(total_size, 0.0);
+        grid.phi.assign(total_size, 0.0);
+
+        const double hadronic_fraction = 1.0 - qgp_fraction;
+        if (hadronic_fraction <= 0.0) {
+            return grid;
+        }
+
+        if (SpectralFunctionMode::vacuum_vector_mesons) {
+            for (std::size_t mass_index = 0; mass_index < MQGrid::masses.size(); ++mass_index) {
+                const double mass = MQGrid::masses[mass_index];
+                if (mass <= 0.0001) {
+                    continue;
+                }
+                for (std::size_t q_index = 0; q_index < MQGrid::mom_abs.size(); ++q_index) {
+                    const double momentum = MQGrid::mom_abs[q_index];
+                    const Parameters par{mass, momentum, temperature, nucleon_density, qgp_fraction};
+                    const double coef = hadronic_fraction * dR_dMd3q_without_ImD(par);
+                    if (coef == 0.0) {
+                        continue;
+                    }
+                    const std::size_t index = mq_index(mass_index, q_index);
+                    grid.rho[index] = coef * ImD_rho_vacuum(par);
+                    grid.omega[index] = coef * ImD_omega_vacuum(par);
+                    grid.phi[index] = coef * ImD_phi_vacuum(par);
+                }
+            }
+            return grid;
+        }
+
+        const VectorMesonCellContext rho_omega_context =
+            rho_omega_table().make_cell_context(temperature, nucleon_density, 0.0, 0.0);
+        const VectorMesonCellContext phi_context =
+            phi_table().make_cell_context(temperature, nucleon_density, 0.0, 0.0);
+
+        for (std::size_t mass_index = 0; mass_index < MQGrid::masses.size(); ++mass_index) {
+            const double mass = MQGrid::masses[mass_index];
+            if (mass <= 0.0001) {
+                continue;
+            }
+            const AxisBracket& rho_mass_bracket = rho_omega_grid_cache().masses[mass_index];
+            const AxisBracket& phi_mass_bracket = phi_grid_cache().masses[mass_index];
+
+            for (std::size_t q_index = 0; q_index < MQGrid::mom_abs.size(); ++q_index) {
+                const double momentum = MQGrid::mom_abs[q_index];
+                const Parameters par{mass, momentum, temperature, nucleon_density, qgp_fraction};
+                const double coef = hadronic_fraction * dR_dMd3q_without_ImD(par);
+                if (coef == 0.0) {
+                    continue;
+                }
+
+                const std::size_t index = mq_index(mass_index, q_index);
+                grid.rho[index] = coef * rho_omega_table().interpolate_fast(
+                    rho_channel(), rho_omega_context,
+                    rho_omega_grid_cache().momenta[q_index], rho_mass_bracket);
+                grid.omega[index] = coef * rho_omega_table().interpolate_fast(
+                    omega_channel(), rho_omega_context,
+                    rho_omega_grid_cache().momenta[q_index], rho_mass_bracket);
+                grid.phi[index] = coef * phi_table().interpolate_fast(
+                    phi_channel(), phi_context,
+                    phi_grid_cache().momenta[q_index], phi_mass_bracket);
+            }
+        }
+
+        return grid;
     }
 
     double dR_dMd3q_without_ImD(const Parameters& par){
@@ -120,26 +279,23 @@ namespace Rates {
         const double frac = par.QGP_fraction;
         const double coef = dR_dMd3q_without_ImD(par);
         double rate = 0;
-/*
-        static bool warned_vacuum = false;
-        if (!warned_vacuum && (s == Source::rho || s == Source::omega || s == Source::phi)) {
-            std::cerr << "Using vacuum spectral function for vector mesons, "
-                      << "in-medium rates not yet implemented.\n";
-            warned_vacuum = true;
-        }
-*/
-
         if (s == Source::QGP) {
             rate = frac * coef * ImD_latQGP(par);
         } else if (frac < 1) {
             if (s == Source::multipi) {
                 rate =  (1-frac) * coef * ImD_multipi(par);
             } else if (s == Source::rho) {
-                rate =  (1-frac) * coef * ImD_rho_vacuum(par);
+                rate =  (1-frac) * coef *
+                        (SpectralFunctionMode::vacuum_vector_mesons ?
+                            ImD_rho_vacuum(par) : ImD_rho_medium(par));
             } else if (s == Source::omega) {
-                rate =  (1-frac) * coef * ImD_omega_vacuum(par);
+                rate =  (1-frac) * coef *
+                        (SpectralFunctionMode::vacuum_vector_mesons ?
+                            ImD_omega_vacuum(par) : ImD_omega_medium(par));
             } else if (s == Source::phi) {
-                rate =  (1-frac) * coef * ImD_phi_vacuum(par);
+                rate =  (1-frac) * coef *
+                        (SpectralFunctionMode::vacuum_vector_mesons ?
+                            ImD_phi_vacuum(par) : ImD_phi_medium(par));
             } else {
                 notImplemented();
             }

@@ -33,6 +33,7 @@ Takes in pairs of keys and values, parsed by a `:` character. The available keys
 | `pT_range`        | 2 doubles  |    no cut    | transverse momentum acceptance       |
 | `yrap_range`      | 2 doubles  |    no cut    | rapidity acceptance                  |
 | `oversample`      | `int > 0`  |     `1`      | number of oversampled dileptons      |
+| `vector_mesons`   |   string   |   `medium`   | rho/omega/phi: `medium` or `vacuum`  |
 | `suppress_output` |   string   |    `none`    | what to NOT calculate: `dilepton`, `spectra`, or `none` |
 
 

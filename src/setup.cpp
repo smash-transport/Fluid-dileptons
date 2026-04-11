@@ -12,6 +12,7 @@ namespace FluidDileptons {
 
 bool OutputMode::spectra = true;
 bool OutputMode::dilepton = true;
+bool SpectralFunctionMode::vacuum_vector_mesons = false;
 int N_oversample = 1;
 
 void notImplemented() {
@@ -64,6 +65,19 @@ static void suppress_output_mode(const std::string& mode) {
         std::cout << "All output modes enabled\n";
     } else {
         std::cerr << "Unknown output mode: " << mode << "\n";
+    }
+}
+
+static void set_vector_mesons(const std::string& value,
+                                               std::ostringstream& oss_err) {
+    if (value == "medium" || value == "in-medium" || value == "in_medium") {
+        SpectralFunctionMode::vacuum_vector_mesons = false;
+        std::cout << "vector_mesons: medium\n";
+    } else if (value == "vacuum") {
+        SpectralFunctionMode::vacuum_vector_mesons = true;
+        std::cout << "vector_mesons: vacuum\n";
+    } else {
+        oss_err << "Vector_mesons should be either 'vacuum' or 'medium'\n";
     }
 }
 
@@ -124,6 +138,8 @@ bool setup(const std::string& filepath) {
             while (ss >> mode) {
                 suppress_output_mode(mode);
             }
+        } else if (key == "vector_mesons") {
+            set_vector_mesons(value, oss_err);
         } else {
             oss_err << key << " is not a configuration key for dileptons.\n";
         }
@@ -156,6 +172,7 @@ bool default_setup() {
 
     OutputMode::spectra = true;
     OutputMode::dilepton = true;
+    SpectralFunctionMode::vacuum_vector_mesons = false;
 
     N_oversample = 1;
     return true;
